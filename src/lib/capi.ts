@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { prisma } from '@/lib/prisma';
 
 function hashPII(val: string | null | undefined): string | null {
   if (!val) return null;
@@ -29,11 +30,22 @@ export async function sendMetaCapiEvent({
   userAgent?: string;
 }) {
   try {
-    const pixelId = process.env.META_PIXEL_ID;
-    const accessToken = process.env.META_ACCESS_TOKEN;
+    let pixelId = process.env.META_PIXEL_ID;
+    let accessToken = process.env.META_ACCESS_TOKEN;
 
     if (!pixelId || !accessToken) {
-      console.log('[CAPI] Meta Pixel ID or Access Token missing in env. Skipping.');
+      const dbSettings = await prisma.setting.findMany();
+      const settingsMap = dbSettings.reduce((acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      pixelId = pixelId || settingsMap.META_PIXEL_ID;
+      accessToken = accessToken || settingsMap.META_ACCESS_TOKEN;
+    }
+
+    if (!pixelId || !accessToken) {
+      console.log('[CAPI] Meta Pixel ID or Access Token missing in DB/Env. Skipping.');
       return;
     }
 
