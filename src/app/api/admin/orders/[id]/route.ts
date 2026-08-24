@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { sendMetaCapiEvent } from '@/lib/capi';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -18,10 +19,31 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
 
+    const existingOrder = await prisma.order.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status }
     });
+
+    if (status === 'COMPLETED' && existingOrder && existingOrder.status !== 'COMPLETED') {
+      try {
+        await sendMetaCapiEvent({
+          eventName: 'Purchase',
+          phone: existingOrder.user?.phone || undefined,
+          email: existingOrder.user?.email || undefined,
+          name: existingOrder.user?.name || undefined,
+          value: existingOrder.amount,
+          currency: 'BDT',
+          eventId: 'order_' + existingOrder.id + '_purchase',
+        });
+      } catch (capiErr) {
+        console.error('[CAPI] Delayed Purchase event dispatch failed:', capiErr);
+      }
+    }
     
     return NextResponse.json(updatedOrder);
   } catch (error) {
