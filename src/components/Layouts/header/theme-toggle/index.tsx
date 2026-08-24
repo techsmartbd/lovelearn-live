@@ -1,0 +1,61 @@
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/custom-theme-provider";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "./icons";
+
+const THEMES = [
+  {
+    name: "light",
+    Icon: Sun,
+  },
+  {
+    name: "dark",
+    Icon: Moon,
+  },
+];
+
+export function ThemeToggleSwitch() {
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="group cursor-pointer rounded-full bg-gray-3 p-1.25 text-dark outline-0 hover:outline-primary focus:outline-primary focus-visible:outline dark:bg-[#020D1A] dark:text-current"
+    >
+      <span className="sr-only">
+        Switch to {isDark ? "light" : "dark"} mode
+      </span>
+
+      <span aria-hidden className="relative flex gap-2.5">
+        {/* Indicator */}
+        <span className={cn(
+          "absolute size-9.5 rounded-full border border-gray-200 bg-white transition-all dark:border-none dark:bg-dark-2 dark:group-hover:bg-dark-3",
+          isDark ? "translate-x-12" : "translate-x-0"
+        )} />
+
+        {THEMES.map(({ name, Icon }) => (
+          <span
+            key={name}
+            className={cn(
+              "relative grid size-9.5 place-items-center rounded-full",
+              name === "dark" && "dark:text-white",
+            )}
+          >
+            <Icon />
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}

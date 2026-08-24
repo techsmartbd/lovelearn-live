@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  phone     String?  @unique
+  email     String?  @unique
+  password  String
+  role      String   @default("USER") // ADMIN or USER
+  isBlocked Boolean  @default(false)
+  accountStatus String @default("ACTIVE") // ACTIVE, HOLD, SUSPENDED, EXPIRED
+  expiresAt DateTime?
+  orders        Order[]
+  sessions      Session[]
+  notifications Notification[]
+  createdAt     DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Package {
+  id            String   @id @default(uuid())
+  title         String
+  type          String   @default("TUTORIAL") // TUTORIAL, EBOOK, COMBO
+  description   String?
+  price         Float
+  originalPrice Float?
+  isLive        Boolean  @default(true)
+  orders        Order[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  packageId String
+  package   Package  @relation(fields: [packageId], references: [id])
+  trxId     String?  @unique
+  amount    Float
+  status    String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Video {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  type          String   @default("VIMEO") // VIMEO, YOUTUBE, CLOUD
+  url           String
+  thumbnail     String?
+  instructor    String   @default("সাকিব হাসান")
+  duration      String   @default("০২ ঘণ্টা ১৫ মিনিট")
+  videosCount   String   @default("১০টি ভিডিও")
+  badge         String   @default("নতুন")
+  packageId     String?
+  isPremium     Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  logoName      String   @default("React")
+  logoColor     String   @default("from-cyan-500 to-blue-600")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress         String?
+  userAgent         String?
+  deviceFingerprint String
+  isActive          Boolean  @default(true)
+  lastSeen          DateTime @default(now())
+  createdAt         DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  type      String   // "MULTI_DEVICE_LOGIN", "REPEATED_LOGIN_LOGOUT", "LOCKED_COURSE_CLICK", "VISITOR_ENGAGEMENT"
+  userId    String?
+  details   String   // JSON formatted string containing event details
+  createdAt DateTime @default(now())
+}
+
+model LandingVideo {
+  id        String   @id @default(uuid())
+  title     String
+  type      String   @default("CLOUD") // CLOUD, VIMEO, YOUTUBE
+  url       String
+  thumbnail String?
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ebook {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  pdfUrl      String
+  thumbnail   String?
+  packageId   String?
+  isPremium   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SmsLog {
+  id          String   @id @default(uuid())
+  from        String?
+  trxId       String   @unique
+  amount      Float
+  senderPhone String?
+  message     String?
+  isMatched   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String?
+  link      String?  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VisitorLead {
+  id        String   @id @default(uuid())
+  name      String?
+  phone     String
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model PromoCode {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  discountType String   @default("FLAT") // "FLAT" (fixed Tk) or "PERCENT" (%)
+  discountVal  Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PromotionOffer {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String
+  discountPct Float    @default(0)
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+

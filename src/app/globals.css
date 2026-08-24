@@ -1,0 +1,172 @@
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Akzidenz', 'Li Ador Noirrit', sans-serif;
+  --font-bengali: 'Li Ador Noirrit', sans-serif;
+
+  --color-primary: #dc2626; /* Red */
+  --color-primary-hover: #b91c1c;
+  --color-dark: #0f172a;
+}
+
+@font-face {
+  font-family: 'Li Ador Noirrit';
+  src: url('/fonts/Li%20Ador%20Noirrit%20Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Li Ador Noirrit';
+  src: url('/fonts/Li%20Ador%20Noirrit%20Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Li Ador Noirrit';
+  src: url('/fonts/Li%20Ador%20Noirrit%20Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Li Ador Noirrit';
+  src: url('/fonts/Li%20Ador%20Noirrit%20SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Li Ador Noirrit';
+  src: url('/fonts/Li%20Ador%20Noirrit%20Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akzidenz';
+  src: url('/fonts/AkzidenzGroteskBQ-Reg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akzidenz';
+  src: url('/fonts/AkzidenzGroteskBQ-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akzidenz';
+  src: url('/fonts/AkzidenzGroteskBQ-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Akzidenz';
+  src: url('/fonts/AkzidenzGroteskBQ-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Akzidenz', 'Li Ador Noirrit', sans-serif;
+  background-color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improve large Bengali headings rendering */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.018em;
+  line-height: 1.25;
+}
+
+/* Custom button animation */
+@keyframes pulse-btn {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
+
+.animate-pulse-btn {
+  animation: pulse-btn 2.2s infinite;
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    left: -150%;
+  }
+  50% {
+    left: 200%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 60%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  animation: shimmer-sweep 3.5s infinite ease-in-out;
+}
+
+.shadow-btn-glow {
+  box-shadow: 0 4px 18px 0 rgba(255, 0, 0, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+
+.shadow-btn-glow:hover {
+  box-shadow: 0 8px 24px 0 rgba(255, 0, 0, 0.55);
+}
+
+@keyframes gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-move {
+  background-size: 200% auto;
+  animation: gradient-move 5s ease infinite;
+}

@@ -1,0 +1,9 @@
+node_modules
+.next
+*.db
+*.sqlite
+public/uploads/
+chat_history/
+*.log
+.env
+.env.local

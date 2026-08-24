@@ -1,0 +1,26 @@
+Found 10:
+্তি দিতে পারছেন?
+            </span>
+          </h1>
+          <p className="text-lg md:text-2xl text-slate-900 dark:text-slate-100 font-extrabold leading-relaxed max-w-3xl mx-auto mt-6">
+            ১০ জনের ৯ জন পুরুষই জানেন না কীভাবে স্ত্রীকে তৃপ্ত করতে হয়। <br />
+            আর এই <span className="text-[#ff0000] font-black">না-জানাটাই</span> সংসারে ডেকে আনে{" "}
+            <span className="text-[#ffba00]">অশান্তি</span>, <span className="text-[#b85a1c]">দূরত্ব</span>, এমনকি <span className="text-[#ff0000] underline decoration-2 underline-offset-4">ডিভোর্স!</span>
+          </p>
+        </div>
+
+        {/* Video Player Mockup */}
+        <div className="relative w-full max-w-4xl mx-auto a
+Found divorce:
+ আনে{" "}
+            <span className="text-[#ffba00]">অশান্তি</span>, <span className="text-[#b85a1c]">দূরত্ব</span>, এমনকি <span className="text-[#ff0000] underline decoration-2 underline-offset-4">ডিভোর্স!</span>
+          </p>
+        </div>
+
+        {/* Video Player Mockup */}
+        <div className="relative w-full max-w-4xl mx-auto aspect-video bg-black border-[5px] border-white dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all group">
+          {videoPlaying ? (
+            landingVideo && landingVideo.type === 'CLOUD' ? (
+              <video 
+                src={landingVideo.url} 
+                poster={landingVideo.thumbnail || undefined
