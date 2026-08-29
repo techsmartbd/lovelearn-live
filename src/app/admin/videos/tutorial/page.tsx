@@ -40,9 +40,20 @@ export default function AdminTutorialVideosPage() {
   const [packageId, setPackageId] = useState('');
   const [isPremium, setIsPremium] = useState(true);
   const [isActive, setIsActive] = useState(true);
+  
+  // Course states
+  const [courses, setCourses] = useState<{id: string; title: string; _count?: {videos: number}}[]>([]);
+  const [courseId, setCourseId] = useState('');
+  const [showCourseForm, setShowCourseForm] = useState(false);
+  const [courseTitle, setCourseTitle] = useState('');
+  const [courseDescription, setCourseDescription] = useState('');
+  const [courseThumbnail, setCourseThumbnail] = useState('');
+  const [courseThumbnailFile, setCourseThumbnailFile] = useState<File | null>(null);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [courseLoading, setCourseLoading] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchVideos(), fetchPackages()]).finally(() => {
+    Promise.all([fetchVideos(), fetchPackages(), fetchCourses()]).finally(() => {
       setFetchLoading(false);
     });
   }, []);
@@ -65,6 +76,18 @@ export default function AdminTutorialVideosPage() {
       if (res.ok) {
         const data = await res.json();
         setPackages(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch('/api/admin/courses');
+      if (res.ok) {
+        const data = await res.json();
+        setCourses(data);
       }
     } catch (e) {
       console.error(e);
@@ -120,6 +143,7 @@ export default function AdminTutorialVideosPage() {
       url: finalUrl, 
       thumbnail: finalThumbnail || undefined,
       packageId: packageId || undefined,
+      courseId: courseId || undefined,
       isPremium,
       isActive
     };

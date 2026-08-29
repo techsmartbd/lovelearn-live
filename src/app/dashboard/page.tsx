@@ -30,10 +30,15 @@ export default async function DashboardPage() {
     redirect("/api/auth/logout?redirect=/login");
   }
 
-  // Get packages, videos, and ebooks
+  // Get packages, videos, ebooks, and courses
   const packages = await prisma.package.findMany();
   const videos = await prisma.video.findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" } });
   const ebooks = await prisma.ebook.findMany({ orderBy: { createdAt: "desc" } });
+  const courses = await prisma.course.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+    include: { videos: { where: { isActive: true }, orderBy: { createdAt: "desc" } } }
+  });
 
   // Map user's owned package IDs from completed orders
   const ownedPackageIds = user.orders

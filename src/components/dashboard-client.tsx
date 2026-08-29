@@ -60,10 +60,11 @@ interface DashboardClientProps {
   packages: any[];
   videos: any[];
   ebooks?: any[];
+  courses?: any[];
   ownedPackageIds: string[];
 }
 
-export default function DashboardClient({ user, packages, videos, ebooks = [], ownedPackageIds }: DashboardClientProps) {
+export default function DashboardClient({ user, packages, videos, ebooks = [], courses = [], ownedPackageIds }: DashboardClientProps) {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
@@ -409,6 +410,17 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], o
     packageId: e.packageId,
     coverImage: e.thumbnail || "/images/landing-vide-thamb-1.png",
     pdfUrl: e.pdfUrl
+  })) : [];
+
+  // Process courses with video counts
+  const activeCourses = courses && courses.length > 0 ? courses.map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description || "",
+    thumbnail: c.thumbnail || "/images/landing-vide-thamb-1.png",
+    videoCount: c.videos?.length || 0,
+    videos: c.videos || [],
+    isActive: c.isActive
   })) : [];
 
   const sidebarMenuItems = [

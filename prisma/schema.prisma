@@ -62,12 +62,27 @@ model Video {
   videosCount   String   @default("১০টি ভিডিও")
   badge         String   @default("নতুন")
   packageId     String?
+  courseId      String?
+  course        Course? @relation(fields: [courseId], references: [id])
   isPremium     Boolean  @default(true)
   isActive      Boolean  @default(true)
   logoName      String   @default("React")
   logoColor     String   @default("from-cyan-500 to-blue-600")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  thumbnail   String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  videos      Video[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Setting {
