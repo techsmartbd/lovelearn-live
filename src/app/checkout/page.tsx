@@ -89,14 +89,30 @@ export default function CheckoutPage() {
   const [promoDrawerOpen, setPromoDrawerOpen] = useState(false);
   const [promoTab, setPromoTab] = useState<"valid" | "invalid">("valid");
 
-  // Read URL params on mount
+  // Read URL params on mount + restore from localStorage (refresh persistence)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const skip = params.get("skipStep1");
       const phoneParam = params.get("phone");
       const priceParam = params.get("price");
-
+      try {
+        const saved = localStorage.getItem("lovelearn_checkout_state");
+        if (saved) {
+          const s = JSON.parse(saved);
+          if (s.step && s.step >= 1 && s.step <= 4) setStep(s.step);
+          if (s.name) setName(s.name);
+          if (s.phone) setPhone(s.phone);
+          if (s.password) setPassword(s.password);
+          if (s.paymentMethod) setPaymentMethod(s.paymentMethod);
+          if (s.promoCode) setPromoCode(s.promoCode);
+          if (s.selectedPromo) setSelectedPromo(s.selectedPromo);
+          if (s.amount) setAmount(s.amount);
+          if (s.trxId) setTrxId(s.trxId);
+          if (s.orderId) setOrderId(s.orderId);
+          if (s.paymentStatus) setPaymentStatus(s.paymentStatus);
+        }
+      } catch (e) {}
       if (skip === "true") {
         setStep(2);
         setPassword("dashboard_unlock");
@@ -109,6 +125,19 @@ export default function CheckoutPage() {
       }
     }
   }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const state = { step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus };
+      localStorage.setItem("lovelearn_checkout_state", JSON.stringify(state));
+    } catch (e) {}
+  }, [step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus]);
+  useEffect(() => {
+    if (paymentStatus === "success" || paymentStatus === "timeout") {
+      const t = setTimeout(() => { try { localStorage.removeItem("lovelearn_checkout_state"); } catch (e) {} }, 15000);
+      return () => clearTimeout(t);
+    }
+  }, [paymentStatus]);
 
   // Gateway Numbers dynamically loaded
   const [gatewayNumbers, setGatewayNumbers] = useState({
@@ -420,10 +449,10 @@ export default function CheckoutPage() {
       </div>
 
       {/* Modal Overlay and Container */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-start md:justify-center p-0 md:p-4 bg-slate-900/60 dark:bg-slate-950/70 md:backdrop-blur-md transition-all">
+      <div className="fixed inset-0 z-10 flex flex-col items-center justify-start md:justify-center p-0 md:p-4 bg-slate-900/60 dark:bg-slate-950/70 md:backdrop-blur-md transition-all overflow-hidden overscroll-none">
         
         {/* Container simulating a sleek mobile layout box */}
-        <div className="w-full md:w-[420px] bg-white dark:bg-[#1E293B] md:rounded-3xl overflow-hidden md:shadow-2xl md:border border-slate-200 dark:border-slate-700/60 relative min-h-screen md:min-h-0 md:h-[760px] flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        <div className="w-full md:w-[420px] bg-white dark:bg-[#1E293B] md:rounded-3xl overflow-hidden md:shadow-2xl md:border border-slate-200 dark:border-slate-700/60 relative h-[100dvh] md:h-[760px] flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-hidden">
         
         {/* Dynamic Theme Header for Steps 2, 3 */}
         {(step === 2 || step === 3) && (
@@ -575,7 +604,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-              <div className="sticky bottom-8 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+              <div className="sticky bottom-0 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
                 <button 
                   onClick={validateStep1}
                   className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
@@ -775,7 +804,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-8 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
               <button 
                 onClick={() => setStep(3)}
                 className="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-extrabold rounded-xl transition-all shadow-md btn-shimmer cursor-pointer text-sm"
@@ -850,7 +879,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-8 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+            <div className="sticky bottom-0 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
               <button 
                 onClick={() => setStep(4)}
                 className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
@@ -1002,7 +1031,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-slate-100 bg-slate-50 sticky bottom-8 mb-4 md:static md:mb-0" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
+            <div className="p-5 border-t border-slate-100 bg-slate-50 sticky bottom-0 mb-0 md:static md:mb-0" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
               {paymentStatus === "idle" && (
                 <button 
                   onClick={() => {
