@@ -575,7 +575,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-              <div className="sticky bottom-0 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 -mb-6 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+              <div className="sticky bottom-8 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
                 <button 
                   onClick={validateStep1}
                   className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
@@ -775,7 +775,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 -mb-6 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+            <div className="sticky bottom-8 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
               <button 
                 onClick={() => setStep(3)}
                 className="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-extrabold rounded-xl transition-all shadow-md btn-shimmer cursor-pointer text-sm"
@@ -850,7 +850,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 -mb-6 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
+            <div className="sticky bottom-8 bg-white dark:bg-[#1E293B] pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-4 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">
               <button 
                 onClick={() => setStep(4)}
                 className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
@@ -1002,7 +1002,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-slate-100 bg-slate-50">
+            <div className="p-5 border-t border-slate-100 bg-slate-50 sticky bottom-8 mb-4 md:static md:mb-0" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
               {paymentStatus === "idle" && (
                 <button 
                   onClick={() => {
