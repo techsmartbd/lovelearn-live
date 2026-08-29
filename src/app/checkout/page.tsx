@@ -1149,7 +1149,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
+            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
               {paymentStatus === "idle" && (
                 <button 
                   onClick={() => {
