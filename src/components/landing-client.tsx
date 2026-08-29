@@ -57,6 +57,9 @@ export default function LandingClient() {
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
   
   // Interactive accordion state (default null = all closed)
   const [openAccordionIndex, setOpenAccordionIndex] = useState<number | null>(null);
@@ -182,8 +185,9 @@ export default function LandingClient() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto slide reviews every 5 seconds
+  // Auto slide reviews every 5 seconds - pausable on hover/touch hold
   useEffect(() => {
+    if (isPaused) return;
     const total = reviews.length > 0 ? reviews.length : 5;
     if (total <= 1) return;
 
@@ -193,7 +197,7 @@ export default function LandingClient() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [reviews]);
+  }, [reviews, isPaused]);
 
   // Handle infinite seamless loop reset
   useEffect(() => {
@@ -210,6 +214,57 @@ export default function LandingClient() {
   const handleDotClick = (index: number) => {
     setIsTransitioning(true);
     setCurrentSlide(index);
+  };
+
+  // Slider touch/drag handlers - hold to pause, swipe to change
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+    setIsPaused(true);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX !== null) setTouchEndX(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = () => {
+    if (touchStartX !== null && touchEndX !== null) {
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        setIsTransitioning(true);
+        const total = reviews.length > 0 ? reviews.length : 5;
+        if (diff > 0) {
+          setCurrentSlide((prev) => prev + 1);
+        } else {
+          // swipe right -> prev, handle loop
+          setCurrentSlide((prev) => {
+            if (prev === 0) return total - 1;
+            return prev - 1;
+          });
+        }
+      }
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+    setIsPaused(false);
+  };
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setTouchStartX(e.clientX);
+    setIsPaused(true);
+  };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (touchStartX !== null && e.buttons === 1) setTouchEndX(e.clientX);
+  };
+  const handleMouseUp = () => {
+    if (touchStartX !== null && touchEndX !== null) {
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        setIsTransitioning(true);
+        const total = reviews.length > 0 ? reviews.length : 5;
+        if (diff > 0) setCurrentSlide((prev) => prev + 1);
+        else setCurrentSlide((prev) => (prev === 0 ? total - 1 : prev - 1));
+      }
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+    setIsPaused(false);
   };
 
   // Track video watch time (trigger at 5s)
@@ -571,8 +626,8 @@ export default function LandingClient() {
           )}
         </div>
 
-        {/* Custom Highlight Banner */}
-        <div className="relative w-full max-w-4xl mx-auto bg-black rounded-xl py-3 md:py-5 px-3 md:px-8 shadow-lg shadow-red-500/5 text-center text-[17px] md:text-[22px] font-bold leading-snug md:leading-relaxed text-white mt-4 select-none flex flex-col justify-center">
+        {/* Custom Highlight Banner - mobile optimized to 3 lines */}
+        <div className="relative w-full max-w-4xl mx-auto bg-black rounded-xl py-2.5 md:py-5 px-3 md:px-8 shadow-lg shadow-red-500/5 text-center text-[14.5px] md:text-[22px] font-bold leading-[1.35] md:leading-relaxed text-white mt-3 md:mt-4 select-none flex flex-col justify-center">
           {/* Tapered Left Border Line */}
           <div className="absolute left-0 top-[10%] bottom-[10%] w-[3px] bg-gradient-to-b from-transparent via-[#ff0000] to-transparent rounded-full" />
           {/* Tapered Right Border Line */}
@@ -585,9 +640,9 @@ export default function LandingClient() {
           </p>
         </div>
 
-        {/* --- ADDED PRICING & CTA FROM REFERENCE --- */}
-        <div className="flex flex-col items-center justify-center mt-8 mb-2 space-y-4">
-          <div className="flex items-center gap-6 md:gap-10">
+        {/* --- ADDED PRICING & CTA FROM REFERENCE - mobile gap reduced --- */}
+        <div className="flex flex-col items-center justify-center mt-4 md:mt-8 mb-1 md:mb-2 space-y-2 md:space-y-4">
+          <div className="flex items-center gap-4 md:gap-10">
             <div className="text-center flex flex-col">
               <span className="text-sm md:text-base text-slate-400 font-semibold mb-1">রেগুলার প্রাইস</span>
               <span className="text-2xl md:text-3xl text-slate-400 line-through font-bold">৩,০০০ টাকা</span>
@@ -598,41 +653,43 @@ export default function LandingClient() {
             </div>
           </div>
 
-          <div className="text-center mt-2 mb-0">
-            <span className="inline-block bg-[#f8ce22] text-black font-bold px-8 py-2 md:py-2.5 rounded-full text-[13px] md:text-[15px] border border-yellow-400 shadow-sm">
+          <div className="text-center mt-1 md:mt-2 mb-0">
+            <span className="inline-block bg-[#f8ce22] text-black font-bold px-6 md:px-8 py-1.5 md:py-2.5 rounded-full text-[12px] md:text-[15px] border border-yellow-400 shadow-sm">
               শুধু ভিডিও সংগ্রহের জন্য সীমিত অফার
             </span>
           </div>
         </div>
         {/* -------------------------------------- */}
 
-        {/* Feature Badges Row */}
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-2 md:gap-3 pt-2 pb-0">
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 shadow-2xs font-bold text-[11px] md:text-xs">
-            <Infinity className="w-3.5 h-3.5 text-[#ff0000]" />
+        {/* Feature Badges Row - mobile try 1 line, fallback to 2 lines */}
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-1.5 md:gap-3 pt-1.5 md:pt-2 pb-0">
+          <div className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2 shadow-2xs font-bold text-[10px] md:text-xs">
+            <Infinity className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#ff0000]" />
             <span>লাইফটাইম অ্যাক্সেস</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 shadow-2xs font-bold text-[11px] md:text-xs">
-            <Zap className="w-3.5 h-3.5 text-[#ff0000]" />
+          <div className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2 shadow-2xs font-bold text-[10px] md:text-xs">
+            <Zap className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#ff0000]" />
             <span>ইনস্ট্যান্ট অ্যাক্সেস</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 shadow-2xs font-bold text-[11px] md:text-xs">
-            <Smartphone className="w-3.5 h-3.5 text-[#ff0000]" />
+          <div className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2 shadow-2xs font-bold text-[10px] md:text-xs">
+            <Smartphone className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#ff0000]" />
             <span>মোবাইল ফ্রেন্ডলি</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 shadow-2xs font-bold text-[11px] md:text-xs">
-            <Globe className="w-3.5 h-3.5 text-[#ff0000]" />
+          {/* Force 3+2 layout on mobile: break after 3rd badge */}
+          <div className="basis-full h-0 md:hidden"></div>
+          <div className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2 shadow-2xs font-bold text-[10px] md:text-xs">
+            <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#ff0000]" />
             <span>বাংলা কোর্স</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 shadow-2xs font-bold text-[11px] md:text-xs">
-            <Cloud className="w-3.5 h-3.5 text-[#ff0000]" />
+          <div className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2 shadow-2xs font-bold text-[10px] md:text-xs">
+            <Cloud className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#ff0000]" />
             <span>আপডেটেড কনটেন্ট</span>
           </div>
         </div>
 
-        {/* CTA order button */}
-        <div className="flex flex-col items-center justify-center space-y-2 mt-8 mb-4 w-full">
-          <Link prefetch={false} href="/checkout" className="inline-flex items-center justify-center rounded-xl bg-[#ff0000] hover:bg-[#d60000] py-4 px-12 font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-btn-glow btn-shimmer animate-pulse-btn text-lg">
+        {/* CTA order button - mobile mt reduced to bring into first fold */}
+        <div className="flex flex-col items-center justify-center space-y-1.5 md:space-y-2 mt-4 md:mt-8 mb-3 md:mb-4 w-full">
+          <Link prefetch={false} href="/checkout" className="inline-flex items-center justify-center rounded-xl bg-[#ff0000] hover:bg-[#d60000] py-3.5 md:py-4 px-10 md:px-12 font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-btn-glow btn-shimmer animate-pulse-btn text-[17px] md:text-lg">
             এখনই কোর্সটি অ্যাক্সেস নিন!
           </Link>
           <span className="text-[12px] md:text-[14px] text-[#ff0000] font-bold tracking-wide mt-2">
@@ -641,21 +698,21 @@ export default function LandingClient() {
         </div>
       </section>
 
-      {/* NEW SECTION: Wife Happiness */}
-      <section className="bg-white dark:bg-[#0B0F14]/40 border-t border-slate-200 dark:border-slate-850 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center space-y-10">
-          <div className="space-y-4">
+      {/* NEW SECTION: Wife Happiness - mobile gaps reduced */}
+      <section className="bg-white dark:bg-[#0B0F14]/40 border-t border-slate-200 dark:border-slate-850 py-10 md:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center space-y-6 md:space-y-10">
+          <div className="space-y-2 md:space-y-4">
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">
-              আপনার স্ত্রী কি আপনাকে নিয়ে <span className="text-[#ff0000] underline decoration-[#ff0000] underline-offset-4">সত্যিই খুশি?</span>
+              আপনার স্ত্রী কি আপনাকে নিয়ে <br className="md:hidden" /><span className="text-[#ff0000] underline decoration-[#ff0000] underline-offset-4 whitespace-nowrap">সত্যিই খুশি?</span>
             </h2>
             <p className="text-sm md:text-lg font-semibold text-slate-700 dark:text-slate-300 max-w-3xl mx-auto">
-              স্ত্রীকে তৃপ্তি দিতে না পারার এই <span className="text-[#ffba00]">ব্যর্থতা</span>, ধীরে ধীরে তার মনে <span className="text-[#ff0000] underline decoration-2 underline-offset-4 font-bold">অন্য কোনো পুরুষকে মনে জায়গা দিচ্ছে</span> না তো?
+              স্ত্রীকে তৃপ্তি দিতে না পারার এই <span className="text-[#ffba00]">ব্যর্থতা</span>, ধীরে ধীরে তার মনে <br className="md:hidden" /><span className="text-[#ff0000] underline decoration-2 underline-offset-4 font-bold whitespace-nowrap">অন্য কোনো পুরুষকে মনে জায়গা দিচ্ছে না তো?</span>
             </p>
           </div>
 
           <div className="max-w-6xl mx-auto">
-            {/* Small red line above grid */}
-            <div className="w-16 h-1 bg-[#ff0000] mx-auto mb-8 rounded-full"></div>
+            {/* Small red line above grid - mobile gap reduced */}
+            <div className="w-16 h-1 bg-[#ff0000] mx-auto mb-4 md:mb-8 rounded-full"></div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="bg-white dark:bg-[#121820] rounded-xl py-4 md:py-6 px-5 md:px-8 shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-800/60 border-l-[4px] border-r-[4px] border-l-[#ff0000] border-r-[#ff0000] flex items-center gap-4 md:gap-5 group hover:shadow-[0_0_20px_rgba(255,0,0,0.08)] transition-all">
@@ -718,9 +775,9 @@ export default function LandingClient() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="success-stories" className="bg-slate-50 dark:bg-[#0B0F14]/60 border-t border-b border-slate-200 dark:border-slate-850 py-20 px-4 overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center space-y-12">
+      {/* Testimonials - mobile gaps reduced */}
+      <section id="success-stories" className="bg-slate-50 dark:bg-[#0B0F14]/60 border-t border-b border-slate-200 dark:border-slate-850 py-10 md:py-20 px-4 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center space-y-6 md:space-y-12">
           <div className="space-y-2">
             <h2 className="text-3xl md:text-5xl font-extrabold text-slate-950 dark:text-white">
               <span className="text-[#ff0000]">৩,৭৫০+</span> স্বামী কি বলছে?
@@ -733,7 +790,17 @@ export default function LandingClient() {
             </div>
           </div>
 
-          <div className="relative w-full mx-auto overflow-hidden">
+          <div 
+            className="relative w-full mx-auto overflow-hidden touch-pan-y cursor-grab active:cursor-grabbing select-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onMouseEnter={() => setIsPaused(true)}
+          >
             <div 
               className={`flex ${isTransitioning ? 'transition-transform duration-1000 ease-in-out' : 'transition-none'}`}
               style={{
@@ -767,8 +834,8 @@ export default function LandingClient() {
             </div>
           </div>
 
-          {/* Navigation dots */}
-          <div className="flex items-center justify-center gap-2 pt-2">
+          {/* Navigation dots - mobile gap reduced */}
+          <div className="flex items-center justify-center gap-2 pt-1 md:pt-2">
             {(reviews.length > 0 ? reviews : [
               "/uploads/reviews/1.png",
               "/uploads/reviews/2.png",
@@ -914,9 +981,9 @@ export default function LandingClient() {
         </div>
       </section>
 
-      {/* Course Curriculum Accordion Section */}
-      <section id="courses" className="bg-white dark:bg-[#0B0F14]/40 border-t border-slate-200 dark:border-slate-850 py-20 px-3 sm:px-6 lg:px-12">
-        <div className="max-w-[1360px] mx-auto space-y-10">
+      {/* Course Curriculum Accordion Section - mobile gaps reduced */}
+      <section id="courses" className="bg-white dark:bg-[#0B0F14]/40 border-t border-slate-200 dark:border-slate-850 py-10 md:py-20 px-3 sm:px-6 lg:px-12">
+        <div className="max-w-[1360px] mx-auto space-y-6 md:space-y-10">
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               কোর্স <span className="text-[#ff0000]">মডিউল</span>
@@ -925,16 +992,16 @@ export default function LandingClient() {
               একনজরে দেখে নিই এই কোর্সে কী কী থাকছে...
             </p>
             
-            {/* Stats Badges matching Reference Image 1 */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2 text-sm md:text-base font-medium text-slate-700 dark:text-slate-300">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold">
-                <Play className="w-4 h-4 fill-current text-red-500" /> ৩৩ টি ক্লাস
+            {/* Stats Badges - mobile 1 line */}
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 pt-2 text-xs md:text-base font-medium text-slate-700 dark:text-slate-300">
+              <span className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold text-xs md:text-sm">
+                <Play className="w-3 h-3 md:w-4 md:h-4 fill-current text-red-500" /> ৩৩ টি ক্লাস
               </span>
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold">
-                <Zap className="w-4 h-4 text-red-500" /> ৫:৩০+ ঘণ্টা ভিডিও
+              <span className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold text-xs md:text-sm">
+                <Zap className="w-3 h-3 md:w-4 md:h-4 text-red-500" /> ৫:৩০+ ঘণ্টা ভিডিও
               </span>
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold">
-                <Infinity className="w-4 h-4 text-red-500" /> লাইফটাইম অ্যাক্সেস
+              <span className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-semibold text-xs md:text-sm">
+                <Infinity className="w-3 h-3 md:w-4 md:h-4 text-red-500" /> লাইফটাইম অ্যাক্সেস
               </span>
             </div>
           </div>
@@ -1079,9 +1146,9 @@ export default function LandingClient() {
             })}
           </div>
 
-          {/* CTA below modules */}
-          <div className="text-center pt-6">
-            <Link prefetch={false} href="/checkout" className="inline-flex items-center justify-center rounded-xl bg-[#ff0000] hover:bg-[#d60000] py-4 px-12 font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-btn-glow btn-shimmer animate-pulse-btn text-lg md:text-xl">
+          {/* CTA below modules - mobile gap reduced */}
+          <div className="text-center pt-4 md:pt-6">
+            <Link prefetch={false} href="/checkout" className="inline-flex items-center justify-center rounded-xl bg-[#ff0000] hover:bg-[#d60000] py-3.5 md:py-4 px-10 md:px-12 font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-btn-glow btn-shimmer animate-pulse-btn text-lg md:text-xl">
               এখনই কোর্সটি অ্যাক্সেস নিন!
             </Link>
           </div>
@@ -1089,9 +1156,9 @@ export default function LandingClient() {
       </section>
       
 
-      {/* FAQ Section: কোর্স সম্পর্কে তথ্য ও জিজ্ঞাসা */}
-      <section id="faq" className="bg-slate-50/80 dark:bg-[#0B0F14]/10 border-t border-slate-200 dark:border-slate-850 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[850px] mx-auto space-y-12">
+      {/* FAQ Section: কোর্স সম্পর্কে তথ্য ও জিজ্ঞাসা - mobile gaps reduced */}
+      <section id="faq" className="bg-slate-50/80 dark:bg-[#0B0F14]/10 border-t border-slate-200 dark:border-slate-850 py-10 md:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[850px] mx-auto space-y-6 md:space-y-12">
           <div className="text-center space-y-3">
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight">
               কোর্স সম্পর্কে <span className="text-[#ff0000]">তথ্য ও জিজ্ঞাসা</span>
@@ -1186,8 +1253,8 @@ export default function LandingClient() {
             })}
           </div>
 
-          {/* Buttons below the accordion */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          {/* Buttons below the accordion - mobile gap reduced */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3 md:pt-4">
             <a 
               href="https://wa.me/8801700000000" 
               target="_blank" 
@@ -1217,9 +1284,9 @@ export default function LandingClient() {
           
           {/* DESKTOP FOOTER LAYOUT (Visible on md and up) */}
           <div className="hidden md:grid grid-cols-12 gap-8 items-start pb-8">
-            {/* Branding Column */}
+            {/* Branding Column - footer logo full color footer */}
             <div className="col-span-5 space-y-4 text-left">
-              <Logo />
+              <img src="/images/logo-full-color-fotter.svg" alt="LoveLearn" className="h-10 w-auto object-contain" />
               <p className="text-[14px] text-slate-400 leading-relaxed font-semibold max-w-sm">
                 LoveLearn হলো একটি অনলাইন লার্নিং প্ল্যাটফর্ম, যেখানে আপনি শিখবেন, জানবেন এবং নিজেকে সামর্থ্য ভিতবেন নতুন দিশায়।
               </p>
@@ -1289,7 +1356,7 @@ export default function LandingClient() {
               <div className="flex flex-col space-y-3.5 text-sm font-semibold text-slate-400">
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-slate-500 shrink-0" />
-                  <span>01200-000000</span>
+                  <span>01948821476</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-slate-500 shrink-0" />
@@ -1306,8 +1373,8 @@ export default function LandingClient() {
 
           {/* MOBILE FOOTER LAYOUT (Visible on mobile screens) */}
           <div className="md:hidden flex flex-col items-center text-center space-y-6 pb-6">
-            {/* Logo, text & Socials */}
-            <Logo />
+            {/* Logo, text & Socials - footer logo */}
+            <img src="/images/logo-full-color-fotter.svg" alt="LoveLearn" className="h-9 w-auto object-contain" />
             <p className="text-[13px] text-slate-400 leading-relaxed font-semibold max-w-sm px-2">
               LoveLearn হলো একটি অনলাইন লার্নিং প্ল্যাটফর্ম, যেখানে আপনি শিখবেন, জানবেন এবং নিজেকে সামর্থ্য ভিতবেন নতুন দিশায়।
             </p>
@@ -1386,7 +1453,7 @@ export default function LandingClient() {
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs font-semibold text-slate-400 px-4 leading-loose">
                 <div className="flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-slate-500" />
-                  <span>01200-000000</span>
+                  <span>01948821476</span>
                 </div>
                 <span className="text-slate-900 font-normal">|</span>
                 <div className="flex items-center gap-1.5">
@@ -1421,30 +1488,30 @@ export default function LandingClient() {
               </div>
             </div>
 
-            {/* Payment Method Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-3 order-1 md:order-3">
+            {/* Payment Method Badges - white bg + nowrap 1 line on mobile */}
+            <div className="flex flex-nowrap items-center justify-center gap-1.5 md:gap-3 order-1 md:order-3">
               {/* bKash */}
-              <div className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-900 flex items-center justify-center h-9 w-[70px]">
+              <div className="px-2 md:px-3 py-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center h-9 w-[62px] md:w-[70px]">
                 <img src="/images/mobile-banking/bkash-flat.svg" alt="bKash" className="h-5 w-auto object-contain" />
               </div>
               {/* Nagad */}
-              <div className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-900 flex items-center justify-center h-9 w-[70px]">
+              <div className="px-2 md:px-3 py-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center h-9 w-[62px] md:w-[70px]">
                 <img src="/images/mobile-banking/nagad-flat.svg" alt="Nagad" className="h-5 w-auto object-contain" />
               </div>
               {/* Rocket */}
-              <div className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-900 flex items-center justify-center h-9 w-[70px]">
+              <div className="px-2 md:px-3 py-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center h-9 w-[62px] md:w-[70px]">
                 <img src="/images/mobile-banking/rocket-flat.svg" alt="Rocket" className="h-5 w-auto object-contain" />
               </div>
               {/* Upay */}
-              <div className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-900 flex items-center justify-center h-9 w-[70px]">
+              <div className="px-2 md:px-3 py-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center h-9 w-[62px] md:w-[70px]">
                 <img src="/images/mobile-banking/upay-flat.svg" alt="Upay" className="h-5 w-auto object-contain" />
               </div>
               {/* Bank Icon Card */}
-              <div className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-900 flex flex-col items-center justify-center h-9 w-[70px] gap-0.5">
-                <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="px-2 md:px-3 py-1.5 rounded-lg bg-white border border-slate-200 flex flex-col items-center justify-center h-9 w-[62px] md:w-[70px] gap-0.5">
+                <svg className="w-3.5 h-3.5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3L2 10h20L12 3z" />
                 </svg>
-                <span className="text-slate-500 font-bold text-[6.5px] uppercase tracking-wider">Bank</span>
+                <span className="text-slate-600 font-bold text-[6.5px] uppercase tracking-wider">Bank</span>
               </div>
             </div>
           </div>
