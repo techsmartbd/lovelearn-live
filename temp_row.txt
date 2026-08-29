@@ -1,0 +1,10 @@
+                        <td className="px-5 py-5 text-sm text-center">
+                          {editId === user.id ? (
+                            <div className="flex flex-col gap-1 items-center">
+                                <input type="text" className="border rounded p-1 text-[10px] w-20" value={newPass} onChange={(e) => setNewPass(e.target.value)} />
+                                <button onClick={() => { handleAccountAction(user.id, "UPDATE_PASSWORD", { newPassword: newPass }); setEditId(null); }} className="bg-primary text-white text-[10px] px-2 py-0.5 rounded">Save</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => { setEditId(user.id); setNewPass(""); }} className="text-[10px] text-primary font-bold underline">Edit</button>
+                          )}
+                        </td>

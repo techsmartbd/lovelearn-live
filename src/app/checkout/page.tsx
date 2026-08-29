@@ -107,8 +107,44 @@ export default function CheckoutPage() {
       if (priceParam) {
         setAmount(Number(priceParam));
       }
+      // Restore step/data from localStorage if not skip
+      if (skip !== "true") {
+        const savedStep = localStorage.getItem("checkout_step");
+        const savedData = localStorage.getItem("checkout_data");
+        if (savedStep) {
+          const s = parseInt(savedStep, 10);
+          if (!isNaN(s) && s >= 1 && s <= 4) {
+            // only restore if user already progressed beyond step 1
+            if (s > 1) setStep(s);
+          }
+        }
+        if (savedData) {
+          try {
+            const d = JSON.parse(savedData);
+            if (d.name) setName(d.name);
+            if (d.phone) setPhone(d.phone);
+            if (d.password) setPassword(d.password);
+            if (d.paymentMethod) setPaymentMethod(d.paymentMethod);
+            if (d.trxId) setTrxId(d.trxId);
+          } catch {}
+        }
+      }
     }
   }, []);
+
+  // Persist step to localStorage so refresh doesn't go back to step 1
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("checkout_step", String(step));
+    }
+  }, [step]);
+
+  // Persist form data
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("checkout_data", JSON.stringify({ name, phone, password, paymentMethod, trxId }));
+    }
+  }, [name, phone, password, paymentMethod, trxId]);
 
   // Gateway Numbers dynamically loaded
   const [gatewayNumbers, setGatewayNumbers] = useState({
@@ -480,7 +516,7 @@ export default function CheckoutPage() {
               </button>
             </div>
 
-            <div className="flex-1 p-6 flex flex-col justify-between">
+            <div className="flex-1 px-6 py-4 md:p-6 flex flex-col justify-between">
               <div className="space-y-6">
                 <div className="text-center pt-2 md:pt-0">
                 <div className="w-16 h-16 bg-[#ff0000]/10 border border-[#ff0000]/20 dark:border-[#ff0000]/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm shadow-red-500/10">
@@ -577,7 +613,7 @@ export default function CheckoutPage() {
 
               <button 
                 onClick={validateStep1}
-                className="w-full py-4 mt-8 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
+                className="w-full py-3.5 md:py-4 mt-4 md:mt-8 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm"
               >
                 {language === "bn" ? "কন্টিনিউ করুন" : "Continue"}
               </button>
@@ -587,7 +623,7 @@ export default function CheckoutPage() {
 
         {/* STEP 2: E-Wallet and Promo Selection */}
         {step === 2 && (
-          <div className="flex-1 p-6 flex flex-col justify-between bg-slate-50 dark:bg-slate-900">
+          <div className="flex-1 px-6 py-4 md:p-6 flex flex-col justify-between bg-slate-50 dark:bg-slate-900">
             <div className="space-y-6">
               {/* Select Promotion */}
               <div className="relative">
@@ -775,7 +811,7 @@ export default function CheckoutPage() {
 
             <button 
               onClick={() => setStep(3)}
-              className="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-extrabold rounded-xl transition-all shadow-md btn-shimmer cursor-pointer text-sm mt-8"
+              className="w-full py-3.5 md:py-4 bg-red-700 hover:bg-red-800 text-white font-extrabold rounded-xl transition-all shadow-md btn-shimmer cursor-pointer text-sm mt-4 md:mt-8"
             >
               {language === "bn" ? "কন্টিনিউ করুন" : "Continue"}
             </button>
@@ -784,7 +820,7 @@ export default function CheckoutPage() {
 
         {/* STEP 3: Enter the Amount */}
         {step === 3 && (
-          <div className="flex-1 p-6 flex flex-col justify-between">
+          <div className="flex-1 px-6 py-4 md:p-6 flex flex-col justify-between">
             <div className="space-y-6">
               <div>
                 <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2.5">Course price (BDT)</h3>
@@ -848,7 +884,7 @@ export default function CheckoutPage() {
 
             <button 
               onClick={() => setStep(4)}
-              className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm mt-8"
+              className="w-full py-3.5 md:py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-btn-glow btn-shimmer cursor-pointer text-sm mt-4 md:mt-8"
             >
               {language === "bn" ? "কন্টিনিউ করুন" : "Continue"}
             </button>
