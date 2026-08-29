@@ -83,7 +83,9 @@ export default function CheckoutPage() {
   // Step 4 states
   const [trxId, setTrxId] = useState("");
   const [countdownTen, setCountdownTen] = useState(600); // 10 minutes in seconds
-  const [paymentStatus, setPaymentStatus] = useState<"idle" | "verifying" | "success" | "timeout">("idle");
+  const [verifyingCountdown, setVerifyingCountdown] = useState(180); // 3 minutes for verification
+  const [extendedCountdown, setExtendedCountdown] = useState(29); // 29 sec extended
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "verifying" | "success" | "timeout" | "extended">("idle");
   const [redirectCountdown, setRedirectCountdown] = useState(10); // 10 seconds redirect timer
   const [orderId, setOrderId] = useState("");
 
@@ -202,7 +204,7 @@ export default function CheckoutPage() {
       .catch(err => console.log("Failed to load dynamic promotions:", err));
   }, []);
 
-  // Timer simulation for Step 4 (10 minutes)
+  // Timer simulation for Step 4 (10 minutes) and verifying (3 minutes) and extended (29 sec)
   useEffect(() => {
     if (step !== 4 || paymentStatus !== "idle") return;
     const interval = setInterval(() => {
@@ -218,14 +220,51 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [step, paymentStatus]);
 
-  // Redirect Timer for Success or Timeout
   useEffect(() => {
-    if (step !== 4 || (paymentStatus !== "success" && paymentStatus !== "timeout")) return;
+    if (step !== 4 || paymentStatus !== "verifying") return;
+    setVerifyingCountdown(180);
+    const interval = setInterval(() => {
+      setVerifyingCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setPaymentStatus("extended");
+          setExtendedCountdown(29);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [step, paymentStatus]);
+
+  useEffect(() => {
+    if (step !== 4 || paymentStatus !== "extended") return;
+    const interval = setInterval(() => {
+      setExtendedCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          window.location.href = "/";
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [step, paymentStatus]);
+
+  // Redirect Timer for Success or Timeout or Extended
+  useEffect(() => {
+    if (step !== 4 || (paymentStatus !== "success" && paymentStatus !== "timeout" && paymentStatus !== "extended")) return;
+    if (paymentStatus === "extended") return; // handled by extended timer
     const interval = setInterval(() => {
       setRedirectCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          window.location.href = "/";
+          if (paymentStatus === "success") {
+            window.location.href = "/dashboard";
+          } else {
+            window.location.href = "/";
+          }
           return 0;
         }
         return prev - 1;
@@ -945,6 +984,7 @@ export default function CheckoutPage() {
                   {paymentStatus === "verifying" && (
                     <>
                       <span className="text-slate-600">{language === "bn" ? "ভেরিফাই করা হচ্ছে..." : "Verifying..."}</span> 
+                      <span>{formatTime(verifyingCountdown)}</span>
                       <Clock className="w-3.5 h-3.5 ml-1 animate-pulse" /> 
                     </>
                   )}
@@ -966,6 +1006,23 @@ export default function CheckoutPage() {
                     <p className="text-slate-600 font-bold animate-pulse">
                       {language === "bn" ? "আপনার পেমেন্ট ভেরিফাই করা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন..." : "Verifying your payment, please wait..."}
                     </p>
+                    <p className="text-xs text-slate-500 font-semibold">{formatTime(verifyingCountdown)} {language === "bn" ? "বাকি" : "remaining"}</p>
+                  </div>
+                )}
+
+                {paymentStatus === "extended" && (
+                  <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                      <Clock className="w-8 h-8 text-amber-600 animate-pulse" />
+                    </div>
+                    <h3 className="text-sm font-black text-slate-800">{language === "bn" ? "ট্রানজেকশনটি প্রত্যাশিত সময়ের চেয়ে বেশি সময় নিচ্ছে" : "Transaction is taking longer than expected"}</h3>
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      {language === "bn" ? "আপনার ডিপোজিট এপ্রুভ হলে ব্যালেন্স প্রদর্শিত হবে।" : "Your deposit will be reflected once approved."}
+                    </p>
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                      <div className="bg-amber-500 h-2 rounded-full transition-all" style={{ width: `${((29 - extendedCountdown)/29)*100}%` }}></div>
+                    </div>
+                    <p className="text-xs font-bold text-slate-600">{language === "bn" ? `আপনাকে ${extendedCountdown} সেকেন্ডের মধ্যে হোমপেজে রিডাইরেক্ট করা হবে।` : `Redirecting to homepage in ${extendedCountdown}s.`}</p>
                   </div>
                 )}
 
@@ -986,9 +1043,9 @@ export default function CheckoutPage() {
                     <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
                       <Check className="w-8 h-8 text-emerald-600" />
                     </div>
-                    <h3 className="text-lg font-black text-slate-800">{language === "bn" ? "পেমেন্ট সফল!" : "Payment Successful!"}</h3>
+                    <h3 className="text-lg font-black text-slate-800">{language === "bn" ? "পেমেন্ট সফল! থ্যাঙ্ক ইউ ফর পারচেজ" : "Payment Successful! Thank you for purchase"}</h3>
                     <p className="text-slate-500 font-bold text-sm">
-                      {language === "bn" ? "আপনার পেমেন্টটি সফলভাবে সম্পন্ন হয়েছে। অনুগ্রহ করে হোম পেজে ফিরে যান।" : "Your payment has been successfully processed. Please return to the home page."}
+                      {language === "bn" ? "প্রিয় গ্রাহক, আপনাকে সরাসরি ইউজার ড্যাশবোর্ডে রিডাইরেক্ট করা হবে।" : "Dear customer, you will be redirected to your user dashboard."}
                     </p>
                   </div>
                 )}
@@ -1027,13 +1084,13 @@ export default function CheckoutPage() {
                     {/* TrxID Input */}
                     <div className="space-y-1.5">
                       <label className="block text-xs font-extrabold text-slate-600">
-                        ট্রানজেকশন আইডি (Transaction ID)
+                        মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি (Mobile or Transaction ID)
                       </label>
                       <input 
                         type="text" 
                         value={trxId}
                         onChange={(e) => setTrxId(e.target.value)}
-                        placeholder={language === "bn" ? "ট্রানজেকশন আইডি লিখুন" : "Enter Transaction ID"}
+                        placeholder={language === "bn" ? "আপনার মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি লিখুন" : "Enter mobile number or Transaction ID"}
                         className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:border-[#ff0000] font-mono text-sm font-bold text-slate-900 transition-all placeholder:text-slate-400"
                         required
                       />
@@ -1042,19 +1099,19 @@ export default function CheckoutPage() {
                     {/* Warnings / Guidelines */}
                     <div className="border-l-4 border-red-500 bg-red-50/50 p-3.5 rounded-r-xl text-xs text-red-600 font-semibold leading-relaxed space-y-1.5">
                       <p>⚠️ অনুগ্রহ করে নিশ্চিত করুন, যে নাম্বারটি উপরে দেয়া আছে সেই নম্বরেই আপনার ওয়ালেট থেকে সফলভাবে টাকা পাঠানো হয়েছে।</p>
-                      <p>⚠️ ট্রানজেকশন আইডিটি অবশ্যই সঠিকভাবে দিতে হবে, অন্যথায় আপনার ডিপোজিটটি অ্যাক্টিভ হবে না।</p>
+                      <p>⚠️ মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি সঠিকভাবে দিতে হবে, অন্যথায় আপনার ডিপোজিটটি অ্যাক্টিভ হবে না।</p>
                     </div>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="p-5 border-t border-slate-100 bg-slate-50 sticky bottom-0 mb-0 md:static md:mb-0" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
+            <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8" style={{paddingBottom: "calc(1rem + env(safe-area-inset-bottom))"}}>
               {paymentStatus === "idle" && (
                 <button 
                   onClick={() => {
                     if (!trxId) {
-                      alert("ট্রানজেকশন আইডি দিন!");
+                      alert("মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি দিন!");
                       return;
                     }
                     setPaymentStatus("verifying");
