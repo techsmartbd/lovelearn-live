@@ -75,12 +75,17 @@ export async function POST(req: Request) {
       finalTrxId = smsLog.trxId; // Store actual TrxID on Order
     }
 
-    // Check if Transaction ID is already used for a completed order (allow re-submit if previous is still pending/verifying)
-    const existingCompletedOrder = await prisma.order.findFirst({
-      where: { trxId: finalTrxId, status: 'COMPLETED' }
+    // Check if Transaction ID is already used
+    const existingOrder = await prisma.order.findFirst({
+      where: { trxId: finalTrxId }
     });
-    if (existingCompletedOrder) {
-      return NextResponse.json({ error: 'এই ট্রানজেকশন আইডিটি ইতোমধ্যে ব্যবহার করা হয়েছে।' }, { status: 400 });
+    if (existingOrder) {
+      if (existingOrder.status === 'COMPLETED') {
+        return NextResponse.json({ error: 'এই ট্রানজেকশন আইডিটি ইতোমধ্যে ব্যবহার করা হয়েছে।' }, { status: 400 });
+      } else {
+        // Pending order with same trxId - allow re-verify by returning existing order
+        return NextResponse.json({ success: true, orderId: existingOrder.id, status: existingOrder.status, redirectUrl: '/checkout/success' });
+      }
     }
 
     // Hash password
