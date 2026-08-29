@@ -208,8 +208,80 @@ export default function AdminTutorialVideosPage() {
     setThumbnailFile(null);
     setVideoFile(null);
     setPackageId('');
+    setCourseId('');
     setIsPremium(true);
     setIsActive(true);
+  };
+
+  const resetCourseForm = () => {
+    setCourseTitle('');
+    setCourseDescription('');
+    setCourseThumbnail('');
+    setCourseThumbnailFile(null);
+    setEditingCourseId(null);
+    setShowCourseForm(false);
+  };
+
+  const handleCourseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCourseLoading(true);
+
+    let finalThumbnail = courseThumbnail;
+    if (courseThumbnailFile) {
+      try {
+        finalThumbnail = await uploadFile(courseThumbnailFile, 'thumbnails');
+      } catch (err: any) {
+        alert(err.message || 'Failed to upload thumbnail');
+        setCourseLoading(false);
+        return;
+      }
+    }
+
+    const payload = {
+      title: courseTitle,
+      description: courseDescription || undefined,
+      thumbnail: finalThumbnail || undefined,
+      isActive: true
+    };
+
+    const endpoint = editingCourseId ? `/api/admin/courses/${editingCourseId}` : '/api/admin/courses';
+    const method = editingCourseId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        await fetchCourses();
+        resetCourseForm();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save course');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setCourseLoading(false);
+  };
+
+  const handleEditCourse = (course: any) => {
+    setEditingCourseId(course.id);
+    setCourseTitle(course.title);
+    setCourseDescription(course.description || '');
+    setCourseThumbnail(course.thumbnail || '');
+    setShowCourseForm(true);
+  };
+
+  const handleDeleteCourse = async (id: string) => {
+    if (!confirm('Are you sure? Videos will be unassigned but not deleted.')) return;
+    try {
+      await fetch(`/api/admin/courses/${id}`, { method: 'DELETE' });
+      await fetchCourses();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   if (fetchLoading) {
@@ -232,6 +304,101 @@ export default function AdminTutorialVideosPage() {
           টিউটোরিয়াল ভিডিও ম্যানেজমেন্ট (Course Curriculum)
         </h2>
         <p className="text-xs font-semibold text-slate-500 mt-1">এখানে স্টুডেন্ট ড্যাশবোর্ডের কারিকুলাম ভিডিওগুলো যোগ, এডিট অথবা ডিলিট করুন।</p>
+      </div>
+
+      {/* Course Management Section */}
+      <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-2xs dark:border-slate-800 dark:bg-gray-dark text-left">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-black text-dark dark:text-white">কোর্স/গ্রুপ ম্যানেজমেন্ট</h3>
+          <button
+            onClick={() => { resetCourseForm(); setShowCourseForm(!showCourseForm); }}
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-[11px] font-bold cursor-pointer"
+          >
+            {showCourseForm ? 'বন্ধ করুন' : '+ নতুন কোর্স তৈরি করুন'}
+          </button>
+        </div>
+
+        {showCourseForm && (
+          <form onSubmit={handleCourseSubmit} className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-4 space-y-3">
+            <div>
+              <label className={labelClass}>কোর্সের নাম *</label>
+              <input
+                type="text"
+                value={courseTitle}
+                onChange={(e) => setCourseTitle(e.target.value)}
+                className={inputClass}
+                placeholder="যেমন: মাস্টার লাভার্স কোর্স"
+                required
+              />
+            </div>
+            <div>
+              <label className={labelClass}>বিবরণ</label>
+              <input
+                type="text"
+                value={courseDescription}
+                onChange={(e) => setCourseDescription(e.target.value)}
+                className={inputClass}
+                placeholder="কোর্সের সংক্ষিপ্ত বিবরণ"
+              />
+            </div>
+            <div>
+              <label className={labelClass}>থাম্বনেইল</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setCourseThumbnailFile(e.target.files?.[0] || null)}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={courseLoading}
+                className="flex-1 inline-flex justify-center items-center gap-1.5 rounded-xl bg-green-600 py-2 px-4 font-bold text-white hover:bg-green-700 transition-all disabled:opacity-50 text-[11px] cursor-pointer"
+              >
+                {courseLoading ? 'সেভ হচ্ছে...' : editingCourseId ? 'আপডেট করুন' : 'তৈরি করুন'}
+              </button>
+              {editingCourseId && (
+                <button
+                  type="button"
+                  onClick={resetCourseForm}
+                  className="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all text-[11px] font-bold cursor-pointer"
+                >
+                  বাতিল
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+
+        {/* Courses List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {courses.map((course) => (
+            <div key={course.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-xs text-dark dark:text-white">{course.title}</p>
+                <p className="text-[10px] text-slate-500">{course._count?.videos || 0}টি ভিডিও</p>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => handleEditCourse(course)}
+                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg cursor-pointer"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteCourse(course.id)}
+                  className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {courses.length === 0 && (
+            <p className="text-slate-500 text-[11px] font-semibold col-span-full py-2">এখনো কোনো কোর্স তৈরি হয়নি</p>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
@@ -303,6 +470,16 @@ export default function AdminTutorialVideosPage() {
                 </select>
               </div>
             )}
+
+            <div>
+              <label className={labelClass}>কোর্স/গ্রুপ (ঐচ্ছিক)</label>
+              <select value={courseId} onChange={e => setCourseId(e.target.value)} className={selectClass}>
+                <option value="">কোর্স সিলেক্ট করুন</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>{course.title}</option>
+                ))}
+              </select>
+            </div>
 
             <div>
               <label className={labelClass}>
