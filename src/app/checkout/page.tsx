@@ -104,17 +104,26 @@ export default function CheckoutPage() {
         const saved = localStorage.getItem("lovelearn_checkout_state");
         if (saved) {
           const s = JSON.parse(saved);
-          if (s.step && s.step >= 1 && s.step <= 4) setStep(s.step);
-          if (s.name) setName(s.name);
-          if (s.phone) setPhone(s.phone);
-          if (s.password) setPassword(s.password);
-          if (s.paymentMethod) setPaymentMethod(s.paymentMethod);
-          if (s.promoCode) setPromoCode(s.promoCode);
-          if (s.selectedPromo) setSelectedPromo(s.selectedPromo);
-          if (s.amount) setAmount(s.amount);
-          if (s.trxId) setTrxId(s.trxId);
-          if (s.orderId) setOrderId(s.orderId);
-          if (s.paymentStatus) setPaymentStatus(s.paymentStatus);
+          // Only restore step 1-3 or step 4 idle/verifying, ignore extended/timeout/success which causes immediate fail screen
+          const validStatus = s.paymentStatus === "idle" || s.paymentStatus === "verifying";
+          if (s.step && s.step >= 1 && s.step <= 4) {
+            // If saved step is 4 with extended/timeout/success, reset to 1 to avoid immediate fail page
+            if (s.step === 4 && !validStatus) {
+              // ignore, stay on step 1
+            } else {
+              setStep(s.step);
+              if (s.name) setName(s.name);
+              if (s.phone) setPhone(s.phone);
+              if (s.password) setPassword(s.password);
+              if (s.paymentMethod) setPaymentMethod(s.paymentMethod);
+              if (s.promoCode) setPromoCode(s.promoCode);
+              if (s.selectedPromo) setSelectedPromo(s.selectedPromo);
+              if (s.amount) setAmount(s.amount);
+              if (s.trxId) setTrxId(s.trxId);
+              if (s.orderId) setOrderId(s.orderId);
+              if (validStatus && s.paymentStatus) setPaymentStatus(s.paymentStatus);
+            }
+          }
         }
       } catch (e) {}
       if (skip === "true") {
