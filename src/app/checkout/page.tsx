@@ -58,6 +58,7 @@ export default function CheckoutPage() {
 
   // Stepper State (1 to 5)
   const [step, setStep] = useState(1);
+  const hasRestored = useRef(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -123,10 +124,13 @@ export default function CheckoutPage() {
       if (priceParam) {
         setAmount(Number(priceParam));
       }
+      // Mark as restored so save effect can run
+      hasRestored.current = true;
     }
   }, []);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!hasRestored.current) return;
     try {
       const state = { step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus };
       localStorage.setItem("lovelearn_checkout_state", JSON.stringify(state));
