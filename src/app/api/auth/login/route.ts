@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSession } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
+import { decryptPassword, isEncrypted } from '@/lib/encryption';
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +25,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user is expired
     if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
       await prisma.user.update({
         where: { id: user.id },
@@ -33,17 +33,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Your subscription has expired, please contact admin or purchase again.' }, { status: 403 });
     }
 
-    // Check if user is blocked/suspended
     if (user.isBlocked || user.accountStatus === "SUSPENDED" || user.accountStatus === "EXPIRED") {
       return NextResponse.json({ error: 'Your account has been suspended, please contact admin.' }, { status: 403 });
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
+    let isValid = false;
+    if (isEncrypted(user.password)) {
+      const decrypted = decryptPassword(user.password);
+      isValid = decrypted === password;
+    } else {
+      isValid = await bcrypt.compare(password, user.password);
+    }
+
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
     }
 
-    // If user is a student, check for approved payment and enforce device locking
     if (user.role === 'USER') {
       const completedOrder = await prisma.order.findFirst({
         where: {
@@ -56,7 +61,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Your payment is currently pending admin verification. Please wait until your transaction is verified.' }, { status: 403 });
       }
 
-      // Session and device fingerprint verification
       if (deviceFingerprint) {
         const activeSessions = await prisma.session.findMany({
           where: {
@@ -68,9 +72,7 @@ export async function POST(req: Request) {
         const isCurrentDeviceRegistered = activeSessions.some(s => s.deviceFingerprint === deviceFingerprint);
 
         if (!isCurrentDeviceRegistered) {
-          // If trying to login on a 3rd device
           if (activeSessions.length >= 2) {
-            // Block user and invalidate all sessions
             await prisma.user.update({
               where: { id: user.id },
               data: { isBlocked: true }
@@ -80,7 +82,6 @@ export async function POST(req: Request) {
               data: { isActive: false }
             });
 
-            // Log multi-device suspension event
             await prisma.activityLog.create({
               data: {
                 type: "MULTI_DEVICE_LOGIN",
@@ -97,7 +98,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Account suspended! You have exceeded the maximum limit of 2 registered devices. Contact admin to unblock.' }, { status: 403 });
           }
 
-          // Register new session
           const userAgent = req.headers.get('user-agent') || 'Unknown';
           const ipAddress = req.headers.get('x-forwarded-for') || '127.0.0.1';
           await prisma.session.create({
@@ -110,7 +110,6 @@ export async function POST(req: Request) {
             }
           });
 
-          // Log new device registration
           await prisma.activityLog.create({
             data: {
               type: "NEW_DEVICE_LOGIN",
@@ -124,7 +123,6 @@ export async function POST(req: Request) {
             }
           });
         } else {
-          // Update last seen
           await prisma.session.updateMany({
             where: { userId: user.id, deviceFingerprint, isActive: true },
             data: { lastSeen: new Date() }
@@ -133,7 +131,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Record login success and check for repeated login/logout behavior
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
     const recentLoginsCount = await prisma.activityLog.count({
@@ -144,7 +141,7 @@ export async function POST(req: Request) {
       }
     });
 
-    if (recentLoginsCount >= 4) { // More than 4 logins in the last hour is suspicious
+    if (recentLoginsCount >= 4) {
       await prisma.activityLog.create({
         data: {
           type: "REPEATED_LOGIN_LOGOUT",
