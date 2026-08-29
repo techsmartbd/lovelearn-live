@@ -57,6 +57,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         videosCount,
         badge,
         packageId,
+        courseId: courseId || null,
         isPremium,
         isActive,
         logoName,
