@@ -140,6 +140,9 @@ export default function CheckoutPage() {
   }, [paymentStatus]);
 
   // Gateway Numbers dynamically loaded
+  const [promotionDropdownEnabled, setPromotionDropdownEnabled] = useState(true);
+  const [promoCodeEnabled, setPromoCodeEnabled] = useState(true);
+
   const [gatewayNumbers, setGatewayNumbers] = useState({
     bkash: "01700000000",
     nagad: "01800000000",
@@ -169,6 +172,8 @@ export default function CheckoutPage() {
           rocket: data.ROCKET_NUMBER || "01900000000",
           upay: data.UPAY_NUMBER || "01500000000"
         });
+        setPromotionDropdownEnabled(data.PROMOTION_DROPDOWN_ENABLED !== 'false');
+        setPromoCodeEnabled(data.PROMO_CODE_ENABLED !== 'false');
         setGatewayTypes({
           bkash: data.BKASH_TYPE || "PERSONAL",
           nagad: data.NAGAD_TYPE || "PERSONAL",
@@ -620,7 +625,8 @@ export default function CheckoutPage() {
         {step === 2 && (
           <div className="flex-1 p-6 flex flex-col justify-between bg-slate-50 dark:bg-slate-900">
             <div className="space-y-6">
-              {/* Select Promotion */}
+              {/* Select Promotion - controlled by admin Active toggle */}
+              {promotionDropdownEnabled && (
               <div className="relative">
                 <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2.5">
                   {language === "bn" ? "প্রমোশন নির্বাচন করুন" : "Select Promotion"}
@@ -687,6 +693,7 @@ export default function CheckoutPage() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* Select Payment cards */}
               <div>
@@ -781,7 +788,8 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Promo Code Input */}
+              {/* Promo Code Input - controlled by admin Active toggle */}
+              {promoCodeEnabled && (
               <div>
                 <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                   {language === "bn" ? "প্রমো কোড" : "Promo Code"}
@@ -802,6 +810,7 @@ export default function CheckoutPage() {
                   </button>
                 </div>
               </div>
+              )}
             </div>
 
             <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] -mx-6 px-6 mb-0 mt-6 border-t border-slate-100 dark:border-slate-800 md:static md:bg-transparent md:border-0 md:pt-0 md:pb-0 md:px-0 md:mx-0 md:mb-0 md:mt-8">

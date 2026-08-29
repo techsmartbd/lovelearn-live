@@ -20,7 +20,9 @@ export default function GeneralSettingsPage() {
     UPAY_NUMBER: '01500000000',
     UPAY_TYPE: 'PERSONAL',
     META_PIXEL_ID: '',
-    GOOGLE_TAG_ID: ''
+    GOOGLE_TAG_ID: '',
+    PROMOTION_DROPDOWN_ENABLED: 'true',
+    PROMO_CODE_ENABLED: 'true'
   });
 
   // Password change states
@@ -275,7 +277,9 @@ export default function GeneralSettingsPage() {
           UPAY_NUMBER: data.UPAY_NUMBER || prev.UPAY_NUMBER || '01500000000',
           UPAY_TYPE: data.UPAY_TYPE || 'PERSONAL',
           META_PIXEL_ID: data.META_PIXEL_ID || '',
-          GOOGLE_TAG_ID: data.GOOGLE_TAG_ID || ''
+          GOOGLE_TAG_ID: data.GOOGLE_TAG_ID || '',
+          PROMOTION_DROPDOWN_ENABLED: data.PROMOTION_DROPDOWN_ENABLED || 'true',
+          PROMO_CODE_ENABLED: data.PROMO_CODE_ENABLED || 'true'
         }));
       }
     } catch (e) {
@@ -286,6 +290,26 @@ export default function GeneralSettingsPage() {
 
   const handleSettingChange = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleTogglePromotionSetting = async (key: 'PROMOTION_DROPDOWN_ENABLED' | 'PROMO_CODE_ENABLED') => {
+    const newVal = settings[key] === 'true' ? 'false' : 'true';
+    const updated = { ...settings, [key]: newVal };
+    setSettings(updated);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: newVal })
+      });
+      if (!res.ok) {
+        alert('টগল সংরক্ষণ ব্যর্থ হয়েছে');
+        setSettings(prev => ({ ...prev, [key]: settings[key] }));
+      }
+    } catch (e) {
+      console.error(e);
+      alert('সার্ভার ত্রুটি');
+    }
   };
 
   const handleSettingsSubmit = async (e: React.FormEvent) => {
@@ -484,17 +508,31 @@ export default function GeneralSettingsPage() {
                     </h4>
                     <p className="text-xs text-slate-500">চেকআউট মোডালে "প্রমোশন নির্বাচন করুন" মেনুতে এই অফারগুলো দেখাবে।</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingOffer(null);
-                      setOfferForm({ title: '', subtitle: '', discountPct: '0', isActive: true });
-                      setOfferModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary hover:bg-opacity-90 text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
-                  >
-                    <Plus className="w-4 h-4" /> নতুন প্রমোশন যোগ করুন
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Active</span>
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePromotionSetting('PROMOTION_DROPDOWN_ENABLED')}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${settings.PROMOTION_DROPDOWN_ENABLED === 'true' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        title={settings.PROMOTION_DROPDOWN_ENABLED === 'true' ? 'সক্রিয় - চেকআউটে দেখাবে' : 'নিষ্ক্রিয় - চেকআউটে লুকানো'}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.PROMOTION_DROPDOWN_ENABLED === 'true' ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                      <span className={`text-[10px] font-bold ${settings.PROMOTION_DROPDOWN_ENABLED === 'true' ? 'text-emerald-600' : 'text-slate-500'}`}>{settings.PROMOTION_DROPDOWN_ENABLED === 'true' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingOffer(null);
+                        setOfferForm({ title: '', subtitle: '', discountPct: '0', isActive: true });
+                        setOfferModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary hover:bg-opacity-90 text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" /> নতুন প্রমোশন যোগ করুন
+                    </button>
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
@@ -580,17 +618,31 @@ export default function GeneralSettingsPage() {
                     </h4>
                     <p className="text-xs text-slate-500">গ্রাহক ডিসকাউন্ট কোড বক্সে এটি বসালে ছাড় পাবে।</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCode(null);
-                      setCodeForm({ code: '', discountType: 'FLAT', discountVal: '50', isActive: true });
-                      setCodeModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
-                  >
-                    <Plus className="w-4 h-4" /> নতুন প্রমো কোড যোগ করুন
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Active</span>
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePromotionSetting('PROMO_CODE_ENABLED')}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${settings.PROMO_CODE_ENABLED === 'true' ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                        title={settings.PROMO_CODE_ENABLED === 'true' ? 'সক্রিয় - চেকআউটে দেখাবে' : 'নিষ্ক্রিয় - চেকআউটে লুকানো'}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.PROMO_CODE_ENABLED === 'true' ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </button>
+                      <span className={`text-[10px] font-bold ${settings.PROMO_CODE_ENABLED === 'true' ? 'text-blue-600' : 'text-slate-500'}`}>{settings.PROMO_CODE_ENABLED === 'true' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCode(null);
+                        setCodeForm({ code: '', discountType: 'FLAT', discountVal: '50', isActive: true });
+                        setCodeModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" /> নতুন প্রমো কোড যোগ করুন
+                    </button>
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
