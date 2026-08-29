@@ -11,7 +11,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     
     const body = await request.json();
-    const { title, description, type, url, thumbnail, instructor, duration, videosCount, badge, packageId, isPremium, isActive, logoName, logoColor } = body;
+    const { title, description, type, url, thumbnail, instructor, duration, videosCount, badge, packageId,
+        courseId, isPremium, isActive, logoName, logoColor } = body;
     
     let finalTitle = title;
     let finalThumbnail = thumbnail;

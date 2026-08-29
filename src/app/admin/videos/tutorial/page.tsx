@@ -193,6 +193,7 @@ export default function AdminTutorialVideosPage() {
     setUrl(video.url);
     setThumbnail(video.thumbnail || '');
     setPackageId(video.packageId || '');
+    setCourseId((video as any).courseId || '');
     setIsPremium(video.isPremium);
     setIsActive(video.isActive !== undefined ? video.isActive : true);
   };
