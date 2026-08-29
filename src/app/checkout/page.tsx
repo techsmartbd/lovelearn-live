@@ -85,6 +85,9 @@ export default function CheckoutPage() {
   const [countdownTen, setCountdownTen] = useState(600); // 10 minutes in seconds
   const [verifyingCountdown, setVerifyingCountdown] = useState(180); // 3 minutes for verification
   const [extendedCountdown, setExtendedCountdown] = useState(29); // 29 sec extended
+  const [verifyingStartedAt, setVerifyingStartedAt] = useState<number | null>(null);
+  const [verifyingNonce, setVerifyingNonce] = useState(0);
+  const [alreadyUsedOpen, setAlreadyUsedOpen] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "verifying" | "success" | "timeout" | "extended">("idle");
   const [redirectCountdown, setRedirectCountdown] = useState(10); // 10 seconds redirect timer
   const [orderId, setOrderId] = useState("");
@@ -104,12 +107,10 @@ export default function CheckoutPage() {
         const saved = localStorage.getItem("lovelearn_checkout_state");
         if (saved) {
           const s = JSON.parse(saved);
-          // Only restore step 1-3 or step 4 idle/verifying, ignore extended/timeout/success which causes immediate fail screen
           const validStatus = s.paymentStatus === "idle" || s.paymentStatus === "verifying";
           if (s.step && s.step >= 1 && s.step <= 4) {
-            // If saved step is 4 with extended/timeout/success, reset to 1 to avoid immediate fail page
             if (s.step === 4 && !validStatus) {
-              // ignore, stay on step 1
+              // ignore stale extended/timeout/success
             } else {
               setStep(s.step);
               if (s.name) setName(s.name);
@@ -122,6 +123,8 @@ export default function CheckoutPage() {
               if (s.trxId) setTrxId(s.trxId);
               if (s.orderId) setOrderId(s.orderId);
               if (validStatus && s.paymentStatus) setPaymentStatus(s.paymentStatus);
+              if (s.verifyingStartedAt) setVerifyingStartedAt(s.verifyingStartedAt);
+              if (s.verifyingCountdown) setVerifyingCountdown(s.verifyingCountdown);
             }
           }
         }
@@ -148,10 +151,10 @@ export default function CheckoutPage() {
       return;
     }
     try {
-      const state = { step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus };
+      const state = { step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus, verifyingStartedAt, verifyingCountdown };
       localStorage.setItem("lovelearn_checkout_state", JSON.stringify(state));
     } catch (e) {}
-  }, [step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus]);
+  }, [step, name, phone, password, paymentMethod, promoCode, selectedPromo, amount, trxId, orderId, paymentStatus, verifyingStartedAt, verifyingCountdown]);
   useEffect(() => {
     if (paymentStatus === "success" || paymentStatus === "timeout") {
       const t = setTimeout(() => { try { localStorage.removeItem("lovelearn_checkout_state"); } catch (e) {} }, 15000);
@@ -231,7 +234,22 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (step !== 4 || paymentStatus !== "verifying") return;
-    setVerifyingCountdown(180);
+    // On first verifying, set startedAt if not already
+    if (!verifyingStartedAt) {
+      const now = Date.now();
+      setVerifyingStartedAt(now);
+      setVerifyingCountdown(180);
+    } else {
+      // Compute remaining from startedAt on refresh
+      const elapsed = Math.floor((Date.now() - verifyingStartedAt) / 1000);
+      const remaining = Math.max(0, 180 - elapsed);
+      if (remaining <= 0) {
+        setPaymentStatus("extended");
+        setExtendedCountdown(29);
+        return;
+      }
+      setVerifyingCountdown(remaining);
+    }
     const interval = setInterval(() => {
       setVerifyingCountdown(prev => {
         if (prev <= 1) {
@@ -244,7 +262,7 @@ export default function CheckoutPage() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [step, paymentStatus]);
+  }, [step, paymentStatus, verifyingStartedAt]);
 
   useEffect(() => {
     if (step !== 4 || paymentStatus !== "extended") return;
@@ -354,8 +372,15 @@ export default function CheckoutPage() {
           }
         } else {
           // Failure - Show error and return to idle
-          setError(data.error || "ট্রানজেকশন ভেরিফিকেশন ব্যর্থ হয়েছে।");
-          setPaymentStatus("idle");
+          const msg = data.error || "";
+          if (msg.toLowerCase().includes("already") || msg.includes("ব্যবহার") || msg.includes("used")) {
+            setAlreadyUsedOpen(true);
+            setTimeout(() => setAlreadyUsedOpen(false), 4000);
+            setPaymentStatus("idle");
+          } else {
+            setError(data.error || "ট্রানজেকশন ভেরিফিকেশন ব্যর্থ হয়েছে।");
+            setPaymentStatus("idle");
+          }
         }
       } catch (err) {
         setError("নেটওয়ার্ক এরর! অনুগ্রহ করে সঠিক ট্রানজেকশন আইডি দিয়ে আবার চেষ্টা করুন।");
@@ -368,7 +393,7 @@ export default function CheckoutPage() {
     return () => {
       if (pollInterval) clearInterval(pollInterval);
     };
-  }, [step, paymentStatus]);
+  }, [step, paymentStatus, verifyingNonce]);
 
   // Format seconds to MM:SS
   const formatTime = (seconds: number) => {
@@ -1047,6 +1072,15 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {alreadyUsedOpen && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+                      <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3"><X className="w-6 h-6 text-amber-600" /></div>
+                      <h3 className="font-bold text-slate-900 dark:text-white">অলরেডি ব্যবহার হয়েছে</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">এই মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি অলরেডি ব্যবহার হয়ে গেছে।</p>
+                    </div>
+                  </div>
+                )}
                 {paymentStatus === "success" && (
                   <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
                     <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -1123,7 +1157,12 @@ export default function CheckoutPage() {
                       alert("মোবাইল নাম্বার অথবা ট্রানজেকশন আইডি দিন!");
                       return;
                     }
+                    // Allow second submit even if already verifying - reset and re-verify
+                    setVerifyingStartedAt(Date.now());
+                    setVerifyingCountdown(180);
+                    setVerifyingNonce(prev => prev + 1);
                     setPaymentStatus("verifying");
+                    setError("");
                   }}
                   className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl shadow-btn-glow btn-shimmer transition-all cursor-pointer text-sm"
                 >
