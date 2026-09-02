@@ -518,7 +518,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                 const Icon = item.icon;
                 const isActive = activeTab === item.id || (item.id === 'dashboard' && activeTab === 'dashboard');
                 return (
-                  <button key={item.id} onClick={() => { if (item.id === 'tutorials') setSelectedCourse(null); setActiveTab(item.id); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm transition-all cursor-pointer ${isActive ? 'bg-[#ff0000]/10 text-[#ff0000] border-l-4 border-[#ff0000]' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}>
+                  <button key={item.id} onClick={() => { if (item.id === 'tutorials') setSelectedCourse(null); setActiveTab(item.id as any); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm transition-all cursor-pointer ${isActive ? 'bg-[#ff0000]/10 text-[#ff0000] border-l-4 border-[#ff0000]' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}>
                     <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#ff0000]' : ''}`} />
                     <span>{item.label}</span>
                   </button>
