@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, description, thumbnail, sortOrder, isActive } = body;
+    const { title, description, thumbnail, packageId, sortOrder, isActive } = body;
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
         title,
         description: description || null,
         thumbnail: thumbnail || null,
+        packageId: packageId || null,
         sortOrder: sortOrder || 0,
         isActive: isActive !== undefined ? isActive : true
       }

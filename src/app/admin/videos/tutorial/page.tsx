@@ -51,6 +51,7 @@ export default function AdminTutorialVideosPage() {
   const [courseThumbnailFile, setCourseThumbnailFile] = useState<File | null>(null);
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
   const [courseLoading, setCourseLoading] = useState(false);
+  const [coursePackageId, setCoursePackageId] = useState('');
 
   useEffect(() => {
     Promise.all([fetchVideos(), fetchPackages(), fetchCourses()]).finally(() => {
@@ -219,6 +220,7 @@ export default function AdminTutorialVideosPage() {
     setCourseDescription('');
     setCourseThumbnail('');
     setCourseThumbnailFile(null);
+    setCoursePackageId('');
     setEditingCourseId(null);
     setShowCourseForm(false);
   };
@@ -242,6 +244,7 @@ export default function AdminTutorialVideosPage() {
       title: courseTitle,
       description: courseDescription || undefined,
       thumbnail: finalThumbnail || undefined,
+      packageId: coursePackageId || undefined,
       isActive: true
     };
 
@@ -272,6 +275,7 @@ export default function AdminTutorialVideosPage() {
     setCourseTitle(course.title);
     setCourseDescription(course.description || '');
     setCourseThumbnail(course.thumbnail || '');
+    setCoursePackageId(course.packageId || '');
     setShowCourseForm(true);
   };
 
@@ -350,6 +354,15 @@ export default function AdminTutorialVideosPage() {
                 onChange={(e) => setCourseThumbnailFile(e.target.files?.[0] || null)}
                 className={inputClass}
               />
+            </div>
+            <div>
+              <label className={labelClass}>কোর্স প্যাকেজ (ঐচ্ছিক)</label>
+              <select value={coursePackageId} onChange={(e) => setCoursePackageId(e.target.value)} className={selectClass}>
+                <option value="">প্যাকেজ নির্বাচন করুন</option>
+                {packages.map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>{pkg.title}</option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2">
               <button

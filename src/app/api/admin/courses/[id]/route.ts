@@ -40,7 +40,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { title, description, thumbnail, sortOrder, isActive } = body;
+    const { title, description, thumbnail, packageId, sortOrder, isActive } = body;
 
     const course = await prisma.course.update({
       where: { id },
@@ -48,6 +48,7 @@ export async function PUT(
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(thumbnail !== undefined && { thumbnail }),
+        ...(packageId !== undefined && { packageId: packageId || null }),
         ...(sortOrder !== undefined && { sortOrder }),
         ...(isActive !== undefined && { isActive })
       }

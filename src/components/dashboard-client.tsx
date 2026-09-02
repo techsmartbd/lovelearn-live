@@ -415,15 +415,20 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
   })) : [];
 
   // Process courses with video counts
-  const activeCourses = courses && courses.length > 0 ? courses.map((c) => ({
-    id: c.id,
-    title: c.title,
-    description: c.description || "",
-    thumbnail: c.thumbnail || "/images/landing-vide-thamb-1.png",
-    videoCount: c.videos?.length || 0,
-    videos: c.videos || [],
-    isActive: c.isActive
-  })) : [];
+  const activeCourses = courses && courses.length > 0 ? courses.map((c) => {
+    const courseUnlocked = c.packageId ? ownedPackageIds.includes(c.packageId) : false;
+    return {
+      id: c.id,
+      title: c.title,
+      description: c.description || "",
+      thumbnail: c.thumbnail || "/images/landing-vide-thamb-1.png",
+      videoCount: c.videos?.length || 0,
+      videos: c.videos || [],
+      isActive: c.isActive,
+      packageId: c.packageId || null,
+      isUnlocked: courseUnlocked
+    };
+  }) : [];
 
   const sidebarMenuItems = [
     { id: "dashboard", label: t("Dashboard") || "ড্যাশবোর্ড", icon: Home },
@@ -930,6 +935,11 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                         <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
                           <img src={course.thumbnail || "/images/landing-vide-thamb-1.png"} alt={course.title} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                          {!course.isUnlocked && course.packageId && (
+                            <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                              <Lock className="w-3.5 h-3.5 text-white" />
+                            </div>
+                          )}
                           <div className="absolute bottom-2 left-2 right-2">
                             <div className="flex items-center gap-1.5">
                               <FolderKanban className="w-4 h-4 text-white" />
@@ -945,8 +955,8 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                         )}
                       </div>
                       <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850">
-                        <button className="w-full py-2 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20">
-                          <FolderKanban className="w-3.5 h-3.5" /> কোর্স দেখুন
+                        <button className={`w-full py-2 font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 ${course.isUnlocked || !course.packageId ? 'bg-[#ff0000] hover:bg-[#d60000] text-white shadow-md shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}>
+                          <FolderKanban className="w-3.5 h-3.5" /> {course.isUnlocked || !course.packageId ? 'কোর্স দেখুন' : 'আনলক করুন'}
                         </button>
                       </div>
                     </div>
@@ -1179,6 +1189,11 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                               <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
                                 <img src={course.thumbnail || "/images/landing-vide-thamb-1.png"} alt={course.title} className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                {!course.isUnlocked && course.packageId && (
+                                  <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                                    <Lock className="w-3.5 h-3.5 text-white" />
+                                  </div>
+                                )}
                                 <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
                                   <div className="flex items-center gap-1.5">
                                     <FolderKanban className="w-4 h-4 text-white" />
@@ -1192,8 +1207,8 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                               )}
                             </div>
                             <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850">
-                              <button className="w-full py-2 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20">
-                                <FolderKanban className="w-3.5 h-3.5" /> কোর্স দেখুন
+                              <button className={`w-full py-2 font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 ${course.isUnlocked || !course.packageId ? 'bg-[#ff0000] hover:bg-[#d60000] text-white shadow-md shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}>
+                                <FolderKanban className="w-3.5 h-3.5" /> {course.isUnlocked || !course.packageId ? 'কোর্স দেখুন' : 'আনলক করুন'}
                               </button>
                             </div>
                           </div>

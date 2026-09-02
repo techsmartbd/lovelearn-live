@@ -78,6 +78,7 @@ model Course {
   title       String
   description String?
   thumbnail   String?
+  packageId   String?
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   videos      Video[]
