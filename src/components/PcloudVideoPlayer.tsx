@@ -15,9 +15,9 @@ export default function PcloudVideoPlayer({ url, poster, className }: { url: str
 
     async function fetchAndBlob() {
       try {
-        let directUrl = url;
+        let streamUrl = url;
         
-        // Extract pCloud direct URL if needed
+        // Use our proxy server for pCloud videos (avoids CORS + hides direct URL)
         if (url.includes('pcloud') && url.includes('code=')) {
           const codeMatch = url.match(/code=([^&]+)/);
           if (!codeMatch) {
@@ -25,23 +25,11 @@ export default function PcloudVideoPlayer({ url, poster, className }: { url: str
             setLoading(false);
             return;
           }
-          
-          const code = codeMatch[1];
-          const res = await fetch(`https://api.pcloud.com/getpublinkdownload?code=${code}`, {
-            referrerPolicy: "no-referrer"
-          });
-          const data = await res.json();
-          
-          if (data.result !== 0 || !data.hosts?.length || !data.path) {
-            setError(`pCloud Error: ${data.error || 'Failed to load video'}`);
-            setLoading(false);
-            return;
-          }
-          directUrl = `https://${data.hosts[0]}${data.path}`;
+          streamUrl = `/api/pcloud/stream?code=${codeMatch[1]}`;
         }
 
-        // Fetch video as blob to hide direct URL from IDM
-        const response = await fetch(directUrl, { referrerPolicy: "no-referrer" });
+        // Fetch video as blob through our proxy
+        const response = await fetch(streamUrl);
         
         if (!response.ok) throw new Error('Failed to fetch video');
         
