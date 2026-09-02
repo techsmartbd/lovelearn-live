@@ -500,6 +500,41 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
       {/* Device Warning Modal */}
       <DeviceWarningModal />
 
+      {/* Mobile Sidebar */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] flex md:hidden">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div className="relative w-72 max-w-[80%] bg-white dark:bg-[#0B0F17] h-full flex flex-col shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <Logo />
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-slate-500 hover:text-[#ff0000] cursor-pointer bg-slate-100 dark:bg-slate-800 rounded-xl"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex gap-2">
+              <ThemeToggle />
+              <LanguageToggle />
+            </div>
+            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+              {sidebarMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id || (item.id === 'dashboard' && activeTab === 'dashboard');
+                return (
+                  <button key={item.id} onClick={() => { if (item.id === 'tutorials') setSelectedCourse(null); setActiveTab(item.id); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm transition-all cursor-pointer ${isActive ? 'bg-[#ff0000]/10 text-[#ff0000] border-l-4 border-[#ff0000]' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}>
+                    <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#ff0000]' : ''}`} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+              <button onClick={() => { setActiveTab('settings'); setMobileMenuOpen(false); }} className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm cursor-pointer transition-all ${activeTab === 'settings' ? 'bg-[#ff0000]/10 text-[#ff0000]' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800'}`}>
+                <Settings className="w-5 h-5 shrink-0" />
+                <span>{t('Settings') || 'সেটিংস'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Desktop Left Sidebar (Collapsible & Hover-Expandable) */}
       <aside 
         onMouseEnter={() => {
@@ -820,21 +855,21 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
 
 
                   {/* Bottom Row inside Hero: Continue Learning Card */}
-                  <div className="relative z-10 mt-4 max-w-sm">
+                  <div className="relative z-10 mt-4 w-[170px] md:max-w-sm">
                     <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-2.5 md:p-3 border border-white/20 shadow-2xl flex flex-col space-y-2 text-left text-slate-900 dark:text-white">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">চালিয়ে যান</span>
                         <span className="text-[10px] font-black text-[#ff0000]">65%</span>
                       </div>
 
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-2.5">
                         {/* React icon box */}
                         <div className="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center text-cyan-400 shrink-0 shadow-md">
                           <Play className="w-4 h-4 fill-current" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-extrabold text-xs text-slate-950 dark:text-white truncate">React.js বাংলা টিউটোরিয়াল</h4>
-                          <p className="text-[9.5px] font-extrabold text-slate-500 truncate">অধ্যায় ১২ - React Router</p>
+                          <h4 className="font-extrabold text-[11px] md:text-xs text-slate-950 dark:text-white truncate">React.js বাংলা টিউটোরিয়াল</h4>
+                          <p className="text-[9px] md:text-[9.5px] font-extrabold text-slate-500 truncate mt-0.5 md:mt-0">অধ্যায় ১২ - React Router</p>
                         </div>
                       </div>
 
@@ -860,11 +895,11 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   </h3>
 
                   {/* 6 Grid Cards (2 columns x 3 rows) */}
-                  <div className="grid grid-cols-2 gap-2.5 flex-1">
+                  <div className="flex md:grid md:grid-cols-2 gap-2.5 flex-1 overflow-x-auto scrollbar-none pb-2 md:pb-0">
                     {/* Card 1: My Courses */}
                     <button 
                       onClick={() => { setActiveTab("tutorials"); setFilterType("my"); }}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Play className="w-3.5 h-3.5 fill-current" />
@@ -876,7 +911,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 2: My eBooks */}
                     <button 
                       onClick={() => { setActiveTab("ebooks"); setEbookFilter("my"); }}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <BookOpen className="w-3.5 h-3.5" />
@@ -888,7 +923,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 3: Course Packages */}
                     <button 
                       onClick={() => setActiveTab("combo")}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Gift className="w-3.5 h-3.5" />
@@ -900,7 +935,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 4: Certificates */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Award className="w-3.5 h-3.5" />
@@ -912,7 +947,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 5: My Library */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <FileText className="w-3.5 h-3.5" />
@@ -924,7 +959,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 6: Help & Support */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <HelpCircle className="w-4 h-4" />
