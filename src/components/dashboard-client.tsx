@@ -163,6 +163,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
   const [filterType, setFilterType] = useState<"all" | "my" | "progress" | "completed">("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("newest");
+  const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string; description: string; thumbnail: string; videos: any[]} | null>(null);
 
   // Filters and views states for eBooks tab
   const [ebookFilter, setEbookFilter] = useState<"all" | "my" | "free" | "premium">("all");
@@ -382,6 +383,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
     videos: v.videosCount || "১০টি ভিডিও",
     badge: v.badge || "নতুন",
     packageId: v.packageId,
+    courseId: v.courseId,
     isPremium: v.isPremium !== undefined ? v.isPremium : true,
     progress: 0,
     thumbnail: v.thumbnail || "/images/landing-vide-thamb-1.png",
@@ -918,7 +920,38 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   ref={tutorialCarouselRef}
                   className="flex items-stretch gap-4 overflow-x-auto scrollbar-none py-2 px-1 scroll-smooth"
                 >
-                  {filteredTutorials.map((tut) => {
+                  {activeCourses.map((course) => (
+                    <div 
+                      key={course.id} 
+                      onClick={() => { setSelectedCourse(course); setActiveTab("tutorials"); }}
+                      className="w-[240px] md:w-[260px] shrink-0 bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-[#ff0000] dark:hover:border-[#ff0000] transition-all shadow-xs group cursor-pointer"
+                    >
+                      <div className="space-y-2">
+                        <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
+                          <img src={course.thumbnail || "/images/landing-vide-thamb-1.png"} alt={course.title} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <div className="flex items-center gap-1.5">
+                              <FolderKanban className="w-4 h-4 text-white" />
+                              <span className="text-[9px] font-black text-white">{course.videoCount}টি ভিডিও</span>
+                            </div>
+                          </div>
+                        </div>
+                        <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors mt-1">
+                          {course.title}
+                        </h4>
+                        {course.description && (
+                          <p className="text-[10px] text-slate-400 font-bold truncate">{course.description}</p>
+                        )}
+                      </div>
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850">
+                        <button className="w-full py-2 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20">
+                          <FolderKanban className="w-3.5 h-3.5" /> কোর্স দেখুন
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredTutorials.filter(t => !t.courseId).map((tut) => {
                     const isUnlocked = !tut.isPremium || ownedPackageIds.includes(tut.packageId);
                     return (
                       <div 
@@ -926,16 +959,11 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                         className="w-[240px] md:w-[260px] shrink-0 bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs group"
                       >
                         <div className="space-y-2">
-                          {/* Thumbnail with overlay & badge */}
                           <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
                             <img src={tut.thumbnail} alt={tut.title} className="w-full h-full object-cover" />
-
-                            {/* Badge at top left */}
                             <div className="absolute top-2 left-2 bg-[#ff0000] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-xs">
                               {tut.badge}
                             </div>
-
-                            {/* Locked Semi-Transparent Overlay with Centered Lock Icon */}
                             {!isUnlocked && (
                               <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] flex items-center justify-center">
                                 <div className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
@@ -944,13 +972,10 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                               </div>
                             )}
                           </div>
-
                           <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors truncate mt-1">
                             {tut.title}
                           </h4>
                         </div>
-
-                        {/* Button Rules based on specification */}
                         <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850 space-y-1.5">
                           {isUnlocked ? (
                             <>
@@ -982,7 +1007,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                 </div>
               </div>
 
-              {/* EBOOK CAROUSEL SECTION */}
+{/* EBOOK CAROUSEL SECTION */}
               <div className="space-y-4 text-left">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1116,74 +1141,187 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
             <div className="space-y-6 text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-950 dark:text-white">টিউটোরিয়াল</h2>
-                  <p className="text-xs text-slate-400 mt-1 font-semibold">আপনার শেখার যাত্রা চালিয়ে যান</p>
+                  {selectedCourse ? (
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => setSelectedCourse(null)}
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                      </button>
+                      <div>
+                        <h2 className="text-2xl font-black text-slate-950 dark:text-white">{selectedCourse.title}</h2>
+                        <p className="text-xs text-slate-400 mt-1 font-semibold">{selectedCourse.videos.length}টি ভিডিও</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-black text-slate-950 dark:text-white">টিউটোরিয়াল</h2>
+                      <p className="text-xs text-slate-400 mt-1 font-semibold">আপনার শেখার যাত্রা চালিয়ে যান</p>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* Grid of Tutorials */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredTutorials.map((tut) => {
-                  const isUnlocked = !tut.isPremium || ownedPackageIds.includes(tut.packageId);
-                  return (
-                    <div key={tut.id} className="bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs group text-left">
-                      <div className="space-y-2">
-                        <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
-                          <img src={tut.thumbnail} alt={tut.title} className="w-full h-full object-cover" />
-
-                          <div className="absolute top-2 left-2 bg-[#ff0000] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
-                            {tut.badge}
+              {!selectedCourse ? (
+                <>
+                  {activeCourses.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">কোর্স সমূহ</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {activeCourses.map((course) => (
+                          <div 
+                            key={course.id}
+                            onClick={() => setSelectedCourse(course)}
+                            className="bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-[#ff0000] dark:hover:border-[#ff0000] transition-all shadow-xs group text-left cursor-pointer"
+                          >
+                            <div className="space-y-2">
+                              <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
+                                <img src={course.thumbnail || "/images/landing-vide-thamb-1.png"} alt={course.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <FolderKanban className="w-4 h-4 text-white" />
+                                    <span className="text-[9px] font-black text-white">{course.videoCount}টি ভিডিও</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors mt-1">{course.title}</h4>
+                              {course.description && (
+                                <p className="text-[10px] text-slate-400 font-bold truncate">{course.description}</p>
+                              )}
+                            </div>
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850">
+                              <button className="w-full py-2 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-red-500/20">
+                                <FolderKanban className="w-3.5 h-3.5" /> কোর্স দেখুন
+                              </button>
+                            </div>
                           </div>
-
-                          {!isUnlocked ? (
-                            <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] flex items-center justify-center">
-                              <div className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
-                                <Lock className="w-4 h-4 text-white" />
-                              </div>
-                            </div>
-                          ) : (
-                            <div 
-                              onClick={() => handlePlayVideo(tut.title, tut.url, tut.type)}
-                              className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                            >
-                              <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                                <Play className="w-4 h-4 text-white fill-white ml-0.5" />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors mt-1">{tut.title}</h4>
-                          <p className="text-[10px] text-slate-400 font-bold mt-1">ইন্সট্রাক্টর: {tut.instructor}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850 space-y-1.5">
-                        {isUnlocked ? (
-                          <button 
-                            onClick={() => handlePlayVideo(tut.title, tut.url, tut.type)}
-                            className="w-full py-2 bg-white text-[#ff0000] border-2 border-[#ff0000] hover:bg-red-50 font-black rounded-lg transition-all text-xs cursor-pointer"
-                          >
-                            চালিয়ে যান
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => handleOpenUnlock({ id: tut.packageId, title: tut.title, price: 990 })}
-                            className="w-full py-2.5 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer shadow-md shadow-red-500/20"
-                          >
-                            আনলক করুন
-                          </button>
-                        )}
+                        ))}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+
+                  {filteredTutorials.filter(t => !t.courseId).length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">অন্যান্য ভিডিও</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {filteredTutorials.filter(t => !t.courseId).map((tut) => {
+                          const isUnlocked = !tut.isPremium || ownedPackageIds.includes(tut.packageId);
+                          return (
+                            <div key={tut.id} className="bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs group text-left">
+                              <div className="space-y-2">
+                                <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
+                                  <img src={tut.thumbnail} alt={tut.title} className="w-full h-full object-cover" />
+                                  <div className="absolute top-2 left-2 bg-[#ff0000] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                                    {tut.badge}
+                                  </div>
+                                  {!isUnlocked ? (
+                                    <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] flex items-center justify-center">
+                                      <div className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
+                                        <Lock className="w-4 h-4 text-white" />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div 
+                                      onClick={() => handlePlayVideo(tut.title, tut.url, tut.type)}
+                                      className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                                    >
+                                      <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                                        <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors mt-1">{tut.title}</h4>
+                                  <p className="text-[10px] text-slate-400 font-bold mt-1">ইন্সট্রাক্টর: {tut.instructor}</p>
+                                </div>
+                              </div>
+                              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850 space-y-1.5">
+                                {isUnlocked ? (
+                                  <button 
+                                    onClick={() => handlePlayVideo(tut.title, tut.url, tut.type)}
+                                    className="w-full py-2 bg-white text-[#ff0000] border-2 border-[#ff0000] hover:bg-red-50 font-black rounded-lg transition-all text-xs cursor-pointer"
+                                  >
+                                    চালিয়ে যান
+                                  </button>
+                                ) : (
+                                  <button 
+                                    onClick={() => handleOpenUnlock({ id: tut.packageId, title: tut.title, price: 990 })}
+                                    className="w-full py-2.5 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer shadow-md shadow-red-500/20"
+                                  >
+                                    আনলক করুন
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {selectedCourse.videos.filter((v: any) => v.isActive !== false).map((vid: any) => {
+                    const isUnlocked = !vid.isPremium || ownedPackageIds.includes(vid.packageId);
+                    return (
+                      <div key={vid.id} className="bg-white dark:bg-[#0B0F17] border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 md:p-3.5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-xs group text-left">
+                        <div className="space-y-2">
+                          <div className="aspect-[16/10] relative rounded-xl overflow-hidden shadow-xs select-none">
+                            <img src={vid.thumbnail || "/images/landing-vide-thamb-1.png"} alt={vid.title} className="w-full h-full object-cover" />
+                            <div className="absolute top-2 left-2 bg-[#ff0000] text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                              {vid.badge || "কোর্স"}
+                            </div>
+                            {!isUnlocked ? (
+                              <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px] flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shadow-lg">
+                                  <Lock className="w-4 h-4 text-white" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                onClick={() => handlePlayVideo(vid.title, vid.url, vid.type)}
+                                className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                              >
+                                <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-xs border border-white/30 flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                                  <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-xs text-slate-950 dark:text-white leading-snug group-hover:text-[#ff0000] transition-colors mt-1">{vid.title}</h4>
+                            <p className="text-[10px] text-slate-400 font-bold mt-1">ইন্সট্রাক্টর: {vid.instructor || "সাকিব হাসান"}</p>
+                          </div>
+                        </div>
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-850 space-y-1.5">
+                          {isUnlocked ? (
+                            <button 
+                              onClick={() => handlePlayVideo(vid.title, vid.url, vid.type)}
+                              className="w-full py-2 bg-white text-[#ff0000] border-2 border-[#ff0000] hover:bg-red-50 font-black rounded-lg transition-all text-xs cursor-pointer"
+                            >
+                              চালিয়ে যান
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleOpenUnlock({ id: vid.packageId, title: vid.title, price: 990 })}
+                              className="w-full py-2.5 bg-[#ff0000] hover:bg-[#d60000] text-white font-black rounded-lg transition-all text-xs cursor-pointer shadow-md shadow-red-500/20"
+                            >
+                              আনলক করুন
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
-          {/* EBOOKS FULL TAB */}
+{/* EBOOKS FULL TAB */}
           {activeTab === "ebooks" && (
             <div className="space-y-6 text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

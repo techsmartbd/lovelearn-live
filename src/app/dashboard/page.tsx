@@ -57,6 +57,7 @@ export default async function DashboardPage() {
       packages={packages}
       videos={videos}
       ebooks={ebooks}
+      courses={courses}
       ownedPackageIds={ownedPackageIds}
     />
   );
