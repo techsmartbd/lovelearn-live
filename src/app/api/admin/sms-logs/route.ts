@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch all SMS logs for Admin Dashboard
 export async function GET(req: Request) {
   try {

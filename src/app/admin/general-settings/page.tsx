@@ -226,7 +226,12 @@ export default function GeneralSettingsPage() {
       const res = await fetch('/api/admin/sms-logs');
       const data = await res.json();
       if (data.success) {
-        setSmsLogs(data.logs || []);
+        if (data.logs) {
+          const sortedLogs = [...data.logs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setSmsLogs(sortedLogs);
+        } else {
+          setSmsLogs([]);
+        }
       }
     } catch (e) {
       console.error("Failed to fetch SMS logs:", e);
