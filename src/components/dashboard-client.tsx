@@ -814,7 +814,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   <img
                     src={coversList[coverIndex]}
                     alt="User Cover"
-                    className="absolute inset-0 w-full h-full object-cover bg-right select-none pointer-events-none transition-all duration-700 ease-in-out scale-100 group-hover:scale-[1.02] animate-cover-slow"
+                    className="absolute inset-0 w-full h-full object-cover object-right md:object-center bg-right select-none pointer-events-none transition-all duration-700 ease-in-out scale-100 group-hover:scale-[1.02] animate-cover-slow"
                   />
 
                   {/* Luxury soft radial background glaze overlays for premium visual depth */}
@@ -895,11 +895,11 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   </h3>
 
                   {/* 6 Grid Cards (2 columns x 3 rows) */}
-                  <div className="flex md:grid md:grid-cols-2 gap-2.5 flex-1 overflow-x-auto scrollbar-none pb-2 md:pb-0">
+                  <div className="grid grid-cols-3 md:grid-cols-2 gap-2 md:gap-2.5 flex-1 pb-2 md:pb-0">
                     {/* Card 1: My Courses */}
                     <button 
                       onClick={() => { setActiveTab("tutorials"); setFilterType("my"); }}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Play className="w-3.5 h-3.5 fill-current" />
@@ -911,7 +911,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 2: My eBooks */}
                     <button 
                       onClick={() => { setActiveTab("ebooks"); setEbookFilter("my"); }}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <BookOpen className="w-3.5 h-3.5" />
@@ -923,7 +923,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 3: Course Packages */}
                     <button 
                       onClick={() => setActiveTab("combo")}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Gift className="w-3.5 h-3.5" />
@@ -935,7 +935,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 4: Certificates */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Award className="w-3.5 h-3.5" />
@@ -947,7 +947,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 5: My Library */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <FileText className="w-3.5 h-3.5" />
@@ -959,7 +959,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     {/* Card 6: Help & Support */}
                     <button 
                       onClick={() => setActiveTab("more")}
-                      className="min-w-[95px] md:min-w-0 shrink-0 p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
+                      className="w-full p-2 md:p-2.5 bg-slate-50 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-1 transition-all cursor-pointer group shadow-2xs"
                     >
                       <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <HelpCircle className="w-4 h-4" />
