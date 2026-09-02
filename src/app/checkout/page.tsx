@@ -314,12 +314,13 @@ export default function CheckoutPage() {
 
           {/* Form State */}
           {viewState === "form" && (
-            <div className="p-6 flex-1">
-              <div className="text-center pt-2 md:pt-0 mb-6">
-                <div className="w-16 h-16 bg-[#ff0000]/10 border border-[#ff0000]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="w-8 h-8 text-[#ff0000]" />
-                </div>
-                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            <div className="p-4 flex-1 relative mt-4">
+              <div className="w-14 h-14 bg-[#ff0000]/10 border border-[#ff0000]/20 rounded-2xl flex items-center justify-center absolute -top-11 left-1/2 -translate-x-1/2 bg-white dark:bg-[#1E293B] shadow-sm">
+                <CreditCard className="w-7 h-7 text-[#ff0000]" />
+              </div>
+              
+              <div className="text-center pt-2 mb-3">
+                <h2 className="text-[17px] sm:text-xl font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
                   অর্ডার করতে নিচের ধাপগুলো পূরণ করুন।
                 </h2>
               </div>
@@ -330,7 +331,7 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className="space-y-5">
+              <div className="space-y-3">
                 {/* Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">আপনার নাম (ঐচ্ছিক)</label>
@@ -341,7 +342,7 @@ export default function CheckoutPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="আপনার নাম লিখুন"
-                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-[#ff0000] text-sm font-medium"
+                      className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-[#ff0000] text-sm font-medium"
                     />
                   </div>
                 </div>
@@ -357,7 +358,7 @@ export default function CheckoutPage() {
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="01XXXXXXXXX"
                       maxLength={11}
-                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-[#ff0000] text-sm font-extrabold"
+                      className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-[#ff0000] text-sm font-extrabold"
                       required 
                     />
                   </div>
@@ -379,7 +380,7 @@ export default function CheckoutPage() {
                           : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
                         }`}
                       >
-                        <img src={`/images/mobile-banking/${method}-flat.svg`} alt={method} className="h-8 object-contain" />
+                        <img src={`/images/mobile-banking/${method}-flat.svg`} alt={method} className="h-6 object-contain" />
                       </button>
                     ))}
                   </div>
@@ -392,13 +393,13 @@ export default function CheckoutPage() {
                     <span className="text-lg font-black text-red-600">{amount} BDT</span>
                   </div>
                   
-                  <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 text-center mt-2">
+                  <div className="text-sm font-bold text-slate-800 dark:text-white mb-2 text-center mt-1">
                     নীচের নম্বরটিতে {amount} টাকা Send Money করুন।
                   </div>
                   
                   <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex justify-between items-center">
                     <div>
-                      <span className="text-xl font-black text-slate-900 dark:text-white">
+                      <span className="text-lg font-black text-slate-900 dark:text-white">
                         {gatewayNumbers[paymentMethod]}
                       </span>
                     </div>
@@ -421,7 +422,7 @@ export default function CheckoutPage() {
                     value={trxId}
                     onChange={(e) => setTrxId(e.target.value)}
                     placeholder="Transaction ID / Phone No."
-                    className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#ff0000] font-mono text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900"
+                    className="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#ff0000] font-mono text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900"
                     required
                   />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold pt-1">
@@ -432,7 +433,7 @@ export default function CheckoutPage() {
                 <div className="pt-4 pb-6">
                   <button 
                     onClick={handleSubmit}
-                    className="w-full py-4 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-md text-sm"
+                    className="w-full py-3 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-md text-sm"
                   >
                     কন্টিনিউ করুন
                   </button>

@@ -242,7 +242,7 @@ export default async function AdminDashboardPage() {
                   <td colSpan={5} className="py-6 text-center text-slate-500 font-medium">কোনো অর্ডার পাওয়া যায়নি।</td>
                 </tr>
               ) : (
-                recentOrders.map((order) => (
+                recentOrders.map((order: any) => (
                   <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                     <td className="py-3.5 px-4 text-slate-900 dark:text-white">{order.user.name || order.user.phone}</td>
                     <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300">{order.package.title}</td>
