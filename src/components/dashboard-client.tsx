@@ -168,7 +168,37 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
   
   // Active playing video state
   const [activePlayingVideo, setActivePlayingVideo] = useState<{ title: string; url: string; type: string } | null>(null);
-  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+
+  // DevTools block + right-click disable
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
+        (e.ctrlKey && e.key === 'u') ||
+        e.key === 'F12'
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    
+    const handleContextMenuGlobal = (e: MouseEvent) => {
+      if (activePlayingVideo) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('contextmenu', handleContextMenuGlobal);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener('contextmenu', handleContextMenuGlobal);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!activePlayingVideo]);  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
 
   // Search filter
@@ -1587,7 +1617,15 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
 
       {/* Active Playing Video Modal */}
       {activePlayingVideo && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 md:p-12">
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 md:p-12"
+          onContextMenu={(e) => e.preventDefault()}
+          onKeyDown={(e) => {
+            if ((e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) || e.key === 'F12') {
+              e.preventDefault();
+            }
+          }}
+        >
           <div className="w-full max-w-5xl aspect-video bg-black relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
             {/* Close Button floating over video */}
             <button 
@@ -1614,6 +1652,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   className="w-full h-full border-0"
                   allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
+                  referrerPolicy="no-referrer"
                 />
               )}
           </div>
