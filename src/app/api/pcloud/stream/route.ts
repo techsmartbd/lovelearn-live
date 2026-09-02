@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Step 1: Resolve pCloud direct URL server-side (no CORS issue)
+    // Step 1: Resolve pCloud direct URL
     const apiRes = await fetch(`https://api.pcloud.com/getpublinkdownload?code=${code}`);
     const apiData = await apiRes.json();
 
@@ -21,35 +22,39 @@ export async function GET(request: Request) {
 
     const directUrl = `https://${apiData.hosts[0]}${apiData.path}`;
 
-    // Step 2: Fetch video from pCloud and stream to client
-    const videoRes = await fetch(directUrl);
+    // Step 2: Forward range request to pCloud
+    const range = request.headers.get('range');
+    const fetchHeaders: Record<string, string> = {};
+    if (range) {
+      fetchHeaders['Range'] = range;
+    }
 
-    if (!videoRes.ok) {
+    const videoRes = await fetch(directUrl, { headers: fetchHeaders });
+
+    if (!videoRes.ok && videoRes.status !== 206) {
       return NextResponse.json({ error: 'Failed to fetch video' }, { status: 502 });
     }
 
-    // Stream the response with proper headers
     const headers = new Headers();
     const contentType = videoRes.headers.get('content-type') || 'video/mp4';
-    const contentLength = videoRes.headers.get('content-length');
     
     headers.set('Content-Type', contentType);
+    headers.set('Accept-Ranges', 'bytes');
     headers.set('Cache-Control', 'public, max-age=3600');
     headers.set('Access-Control-Allow-Origin', '*');
-    
+
+    const contentLength = videoRes.headers.get('content-length');
     if (contentLength) {
       headers.set('Content-Length', contentLength);
     }
 
-    // Handle range requests for video seeking
-    const range = request.headers.get('range');
-    if (range) {
-      headers.set('Content-Range', videoRes.headers.get('Content-Range') || '');
-      headers.set('Accept-Ranges', 'bytes');
+    const contentRange = videoRes.headers.get('content-range');
+    if (contentRange) {
+      headers.set('Content-Range', contentRange);
     }
 
     return new NextResponse(videoRes.body, {
-      status: range ? 206 : 200,
+      status: videoRes.status,
       headers,
     });
   } catch (error: any) {
