@@ -52,6 +52,10 @@ export const NAV_DATA = [
             title: "Visitor Info",
             url: "/admin/visitor-info",
           },
+          {
+            title: "User Access Control",
+            url: "/admin/user-access",
+          },
         ],
       },
       {

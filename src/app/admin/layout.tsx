@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Header />
 
           {(() => {
-            const isWidePage = pathname === "/admin/videos/tutorial" || pathname === "/admin/videos/landing" || pathname === "/admin/ebooks" || pathname === "/admin/packages" || pathname === "/admin/visitor-info";
+            const isWidePage = pathname === "/admin/videos/tutorial" || pathname === "/admin/videos/landing" || pathname === "/admin/ebooks" || pathname === "/admin/packages" || pathname === "/admin/visitor-info" || pathname === "/admin/user-access";
             return (
               <main className={`isolate w-full overflow-hidden p-4 md:p-6 2xl:p-10 ${isWidePage ? "max-w-none px-4 md:px-8" : "mx-auto max-w-[1200px]"}`}>
                 {children}
