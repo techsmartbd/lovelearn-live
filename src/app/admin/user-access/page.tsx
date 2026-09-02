@@ -52,18 +52,9 @@ export default function UserAccessPage() {
     if (!searchPhone.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/sessions?search=${encodeURIComponent(searchPhone)}`);
+      const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(searchPhone)}`);
       const data = await res.json();
-      // Extract unique users from sessions
-      const uniqueUsers = new Map<string, User>();
-      if (Array.isArray(data)) {
-        data.forEach((s: any) => {
-          if (s.user && !uniqueUsers.has(s.user.id)) {
-            uniqueUsers.set(s.user.id, s.user);
-          }
-        });
-      }
-      setUsers(Array.from(uniqueUsers.values()));
+      setUsers(Array.isArray(data) ? data : []);
     } catch (e) {
       setUsers([]);
     }

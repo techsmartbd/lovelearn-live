@@ -673,8 +673,10 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
             </div>
 
             <div className="flex items-center space-x-3">
-              <ThemeToggle />
-              <LanguageToggle />
+              <div className="hidden md:flex items-center space-x-3">
+                <ThemeToggle />
+                <LanguageToggle />
+              </div>
               
               {/* Notification Bell & Dropdown */}
               <div className="relative">
