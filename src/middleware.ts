@@ -13,8 +13,16 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/dashboard')) {
     if (!token && !adminToken) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
+      redirectResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return redirectResponse;
     }
+    // Prevent browser from caching the redirect - add no-cache headers
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   }
   
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {

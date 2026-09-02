@@ -5,6 +5,12 @@ import DashboardClient from "@/components/dashboard-client";
 
 export const revalidate = 0; // Ensure fresh data on reload
 
+export const headers = {
+  'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+};
+
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session || session.role !== "USER") {
