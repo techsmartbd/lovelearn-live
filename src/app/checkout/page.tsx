@@ -57,7 +57,7 @@ export default function CheckoutPage() {
   const [trxId, setTrxId] = useState("");
   
   // Timer States
-  const [verifyingCountdown, setVerifyingCountdown] = useState(3);
+  const [verifyingCountdown, setVerifyingCountdown] = useState(179);
   const [extendedCountdown, setExtendedCountdown] = useState(29);
   const [verifyingStartedAt, setVerifyingStartedAt] = useState<number | null>(null);
   const [alreadyUsedOpen, setAlreadyUsedOpen] = useState(false);
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
     }
 
     setVerifyingStartedAt(Date.now());
-    setVerifyingCountdown(3);
+    setVerifyingCountdown(179);
     setViewState("verifying");
     setError("");
     
