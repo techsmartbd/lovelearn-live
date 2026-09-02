@@ -52,7 +52,7 @@ export default function CheckoutPage() {
   // Form states
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"bkash" | "nagad" | "rocket" | "upay">("nagad");
+  const [paymentMethod, setPaymentMethod] = useState<"bkash" | "nagad" | "rocket" | "upay">("bkash");
   const [amount, setAmount] = useState<number>(990);
   const [trxId, setTrxId] = useState("");
   
@@ -319,20 +319,21 @@ export default function CheckoutPage() {
 
           {/* Form State */}
           {viewState === "form" && (
-            <div className="px-4 pb-4 flex-1 relative mt-0">
-              <div className="text-center pt-4 mb-3">
+            <div className="px-5 md:px-7 pb-4 flex flex-col flex-1 relative mt-0">
+              <div className="text-center pt-4 mb-3 shrink-0">
                 <h2 className="text-[16px] md:text-lg font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
                   অর্ডার করতে নিচের ধাপগুলো পূরণ করুন।
                 </h2>
               </div>
 
               {error && (
-                <div className="p-3 mb-4 bg-red-500/10 border border-red-500/35 text-red-600 rounded-xl text-xs font-bold">
+                <div className="p-3 mb-4 bg-red-500/10 border border-red-500/35 text-red-600 rounded-xl text-xs font-bold shrink-0">
                   {error}
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
                 {/* Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">আপনার নাম (ঐচ্ছিক)</label>
@@ -381,7 +382,7 @@ export default function CheckoutPage() {
                           : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
                         }`}
                       >
-                        <img src={`/images/mobile-banking/${method}-flat.svg`} alt={method} className="h-6 object-contain" />
+                        <img src={`/images/mobile-banking/${method}-flat.svg`} alt={method} className="h-7 md:h-8 object-contain" />
                       </button>
                     ))}
                   </div>
@@ -431,10 +432,12 @@ export default function CheckoutPage() {
                   </p>
                 </div>
 
-                <div className="pt-4 pb-6">
+                </div>
+
+                <div className="pt-4 pb-2 mt-auto">
                   <button 
                     onClick={handleSubmit}
-                    className="w-full py-3 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-md text-sm"
+                    className="w-full py-3.5 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-xl transition-all shadow-md text-sm btn-shimmer"
                   >
                     কন্টিনিউ করুন
                   </button>
