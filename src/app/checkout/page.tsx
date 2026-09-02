@@ -294,19 +294,24 @@ export default function CheckoutPage() {
       </div>
 
       <div className="fixed inset-0 z-10 flex flex-col items-center justify-start md:justify-center p-0 md:p-4 bg-slate-900/60 dark:bg-slate-950/70 md:backdrop-blur-md transition-all overflow-hidden overscroll-none">
-        <div className="w-full md:w-[420px] bg-white dark:bg-[#1E293B] md:rounded-3xl shadow-2xl md:border border-slate-200 dark:border-slate-700/60 relative h-[100dvh] md:h-[760px] flex flex-col overflow-y-auto overflow-x-hidden text-slate-900 dark:text-slate-100">
+        <div className="w-full md:w-[420px] bg-white dark:bg-[#1E293B] md:rounded-3xl shadow-2xl md:border border-slate-200 dark:border-slate-700/60 relative h-[100dvh] md:h-[760px] flex flex-col overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] text-slate-900 dark:text-slate-100">
           
           {/* Header */}
           <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 sticky top-0 bg-white/90 dark:bg-[#1E293B]/90 backdrop-blur-sm z-20">
             <button 
               onClick={() => window.location.href = '/'} 
-              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full cursor-pointer text-slate-500"
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full cursor-pointer text-slate-500 relative z-10"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
+            
+            <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 bg-[#ff0000]/10 border border-[#ff0000]/20 rounded-xl flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-[#ff0000]" />
+            </div>
+
             <button 
               onClick={() => window.location.href = '/'} 
-              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full cursor-pointer text-slate-500"
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full cursor-pointer text-slate-500 relative z-10"
             >
               <X className="w-6 h-6" />
             </button>
@@ -314,13 +319,9 @@ export default function CheckoutPage() {
 
           {/* Form State */}
           {viewState === "form" && (
-            <div className="p-4 flex-1 relative mt-4">
-              <div className="w-14 h-14 bg-[#ff0000]/10 border border-[#ff0000]/20 rounded-2xl flex items-center justify-center absolute -top-11 left-1/2 -translate-x-1/2 bg-white dark:bg-[#1E293B] shadow-sm">
-                <CreditCard className="w-7 h-7 text-[#ff0000]" />
-              </div>
-              
-              <div className="text-center pt-2 mb-3">
-                <h2 className="text-[17px] sm:text-xl font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
+            <div className="px-4 pb-4 flex-1 relative mt-0">
+              <div className="text-center pt-4 mb-3">
+                <h2 className="text-[16px] md:text-lg font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
                   অর্ডার করতে নিচের ধাপগুলো পূরণ করুন।
                 </h2>
               </div>
