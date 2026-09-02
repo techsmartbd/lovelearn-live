@@ -71,6 +71,21 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
   useEffect(() => {
     setMounted(true);
     
+    // Handle browser back/forward button - reset selectedCourse
+    const handlePopState = () => {
+      setSelectedCourse(null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.history.pushState({ courseView: true }, '');
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (!mounted) return;
+    
     // Check if returning from checkout back button
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.get("action") === "unlock" && searchParams.get("packageId")) {
@@ -518,7 +533,10 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id as any)}
+                  onClick={() => {
+                    if (item.id === "tutorials") setSelectedCourse(null);
+                    setActiveTab(item.id as any);
+                  }}
                   title={!isExpanded ? item.label : undefined}
                   className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl font-medium text-sm transition-all cursor-pointer relative group ${
                     isActive
@@ -796,7 +814,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                       </div>
 
                       <button 
-                        onClick={() => setActiveTab("tutorials")}
+                        onClick={() => { setSelectedCourse(null); setActiveTab("tutorials"); }}
                         className="w-full py-1.5 bg-[#ff0000] hover:bg-[#d60000] text-white font-extrabold rounded-lg transition-all text-xs cursor-pointer flex items-center justify-center gap-1 shadow-md shadow-red-500/20"
                       >
                         চালিয়ে যান <ArrowRight className="w-3.5 h-3.5" />
@@ -898,7 +916,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
 
                   <div className="flex items-center gap-3">
                     <button 
-                      onClick={() => setActiveTab("tutorials")} 
+                      onClick={() => { setSelectedCourse(null); setActiveTab("tutorials"); }} 
                       className="text-xs font-black text-[#ff0000] hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       সব দেখুন <ArrowRight className="w-3.5 h-3.5" />
@@ -1137,7 +1155,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                     <h4 className="font-black text-sm text-white">নতুন স্কিল, নতুন আপনি!</h4>
                     <p className="text-xs text-emerald-100/70 font-bold">প্রতিদিন নতুন কিছু শিখুন এবং ক্যারিয়ার গড়ুন</p>
                   </div>
-                  <button onClick={() => setActiveTab("tutorials")} className="w-fit px-4 py-2 bg-white text-emerald-700 font-extrabold rounded-lg text-xs hover:bg-emerald-50 transition-all cursor-pointer shadow-md">
+                  <button onClick={() => { setSelectedCourse(null); setActiveTab("tutorials"); }} className="w-fit px-4 py-2 bg-white text-emerald-700 font-extrabold rounded-lg text-xs hover:bg-emerald-50 transition-all cursor-pointer shadow-md">
                     শুরু করুন
                   </button>
                 </div>
@@ -1525,7 +1543,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
           </button>
 
           <button
-            onClick={() => setActiveTab("tutorials")}
+            onClick={() => { setSelectedCourse(null); setActiveTab("tutorials"); }}
             className={`flex flex-col items-center gap-1 text-[10px] font-black cursor-pointer ${
               activeTab === "tutorials" ? "text-[#ff0000]" : "text-slate-400"
             }`}
