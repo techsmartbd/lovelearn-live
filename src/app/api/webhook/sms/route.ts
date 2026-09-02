@@ -8,45 +8,20 @@ function parseSms(sender: string, text: string) {
 
   const message = text.replace(/\n/g, ' '); // Normalize spaces
 
-  if (sender.toLowerCase().includes('bkash')) {
-    // bKash SMS usually looks like:
-    // You have received Tk 500.00 from 017XXXXXX. Ref X. Fee Tk 0.00. Balance Tk 1500.00. TrxID 8XXXXXXX at 10/10/2023 10:10
-    const trxMatch = message.match(/TrxID\s+([A-Za-z0-9]+)/i);
-    if (trxMatch && trxMatch[1]) {
-      trxId = trxMatch[1];
-    }
+  // Match TxnId, TxnID, TrxID etc universally
+  const trxMatch = message.match(/(?:TrxID|TxnId|TxnID|Ref)[\s:]*([A-Za-z0-9]+)/i);
+  if (trxMatch && trxMatch[1]) {
+    trxId = trxMatch[1];
+  }
 
-    // Match Tk 500.00 or Tk 500
-    const amountMatch = message.match(/Tk\s*([\d,]+\.?\d*)/i);
-    if (amountMatch && amountMatch[1]) {
-      amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-    }
-  } else if (sender.toLowerCase().includes('nagad')) {
-    // Nagad SMS usually looks like:
-    // Cash In Tk 500.00 from 018XXXXXX. TxnID: 7XXXXXXX. Balance: Tk 1500.00. Date: 10/10/2023 10:10
-    const txnMatch = message.match(/TxnID\s*:\s*([A-Za-z0-9]+)/i) || message.match(/TxnId\s*:\s*([A-Za-z0-9]+)/i);
-    if (txnMatch && txnMatch[1]) {
-      trxId = txnMatch[1];
-    }
-
-    const amountMatch = message.match(/Tk\s*([\d,]+\.?\d*)/i) || message.match(/Amount\s*:\s*Tk\s*([\d,]+\.?\d*)/i);
-    if (amountMatch && amountMatch[1]) {
-      amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-    }
-  } else {
-    // Generic fallback for Rocket, Upay etc.
-    const trxMatch = message.match(/(?:TrxID|TxnId|TxnID)[\s:]+([A-Za-z0-9]+)/i);
-    if (trxMatch && trxMatch[1]) {
-      trxId = trxMatch[1];
-    }
-    const amountMatch = message.match(/Tk\s*([\d,]+\.?\d*)/i);
-    if (amountMatch && amountMatch[1]) {
-      amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-    }
+  // Match Tk 500.00, Tk500, Amount: Tk 500
+  const amountMatch = message.match(/(?:Tk|Amount:?\s*Tk)[\s]*([\d,]+\.?\d*)/i);
+  if (amountMatch && amountMatch[1]) {
+    amount = parseFloat(amountMatch[1].replace(/,/g, ''));
   }
 
   let senderPhone = null;
-  const phoneMatch = message.match(/(?:from|by)\s*(01[3-9]\d{8})/i) || message.match(/(01[3-9]\d{8})/);
+  const phoneMatch = message.match(/(?:from|by|Sender:?)\s*(01[3-9]\d{8})/i) || message.match(/(01[3-9]\d{8})/);
   if (phoneMatch && phoneMatch[1]) {
     senderPhone = phoneMatch[1];
   }
@@ -63,10 +38,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Sender and Message are required' }, { status: 400 });
     }
 
-    const { trxId, amount, senderPhone } = parseSms(sender, message);
+    let { trxId, amount, senderPhone } = parseSms(sender, message);
 
-    if (!trxId || !amount) {
-      return NextResponse.json({ error: 'Could not parse TrxID or Amount from SMS', parsed: { trxId, amount, senderPhone } }, { status: 400 });
+    let isMatched = false;
+    let originalTrxId = trxId;
+
+    if (!trxId) {
+      // If we couldn't parse a trxId, we generate a fallback so it saves to the DB for admin review
+      trxId = `UNKNOWN_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    }
+    
+    if (!amount) {
+      amount = 0;
     }
 
     // Check if SMS log already exists
@@ -88,9 +71,6 @@ export async function POST(req: Request) {
         ]
       }
     });
-
-    let isMatched = false;
-
     if (existingOrder && existingOrder.status === 'PENDING') {
       if (Math.abs(existingOrder.amount - amount) <= 5) {
         await prisma.order.update({
