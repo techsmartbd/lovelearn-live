@@ -9,7 +9,7 @@ function parseSms(sender: string, text: string) {
   const message = text.replace(/\n/g, ' '); // Normalize spaces
 
   // Match TxnId, TxnID, TrxID etc universally
-  const trxMatch = message.match(/(?:TrxID|TxnId|TxnID|Ref)[\s:]*([A-Za-z0-9]+)/i);
+  const trxMatch = message.match(/(?:TrxID|TxnId|TxnID)[\s:]*([A-Za-z0-9]+)/i);
   if (trxMatch && trxMatch[1]) {
     trxId = trxMatch[1];
   }
@@ -21,7 +21,7 @@ function parseSms(sender: string, text: string) {
   }
 
   let senderPhone = null;
-  const phoneMatch = message.match(/(?:from|by|Sender:?)\s*(01[3-9]\d{8})/i) || message.match(/(01[3-9]\d{8})/);
+  const phoneMatch = message.match(/(?:from|by|Sender:?|From:?)[\sA-Za-z/:]*(01[3-9]\d{8})/i) || message.match(/(01[3-9]\d{8})/);
   if (phoneMatch && phoneMatch[1]) {
     senderPhone = phoneMatch[1];
   }
