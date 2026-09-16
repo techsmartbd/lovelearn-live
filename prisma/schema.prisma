@@ -190,4 +190,14 @@ model PromotionOffer {
   updatedAt   DateTime @updatedAt
 }
 
+model UserContentAccess {
+  id          String   @id @default(uuid())
+  userId      String
+  contentType String   // "COURSE", "EBOOK", "VIDEO"
+  contentId   String
+  action      String   // "GRANT", "REVOKE"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  @@unique([userId, contentType, contentId])
+}
