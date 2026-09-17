@@ -225,6 +225,15 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
   const ebookCarouselRef = useRef<HTMLDivElement>(null);
   const promoCarouselRef = useRef<HTMLDivElement>(null);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Auto-slide promotional banners every 4 seconds on infinite loop
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveBannerIndex((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -1191,19 +1200,12 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                 </div>
               </div>
 
-              {/* PROMOTIONAL BANNERS SECTION - Desktop 3-Grid & Mobile Swipeable Slider */}
-              <div className="pt-4 space-y-2">
-                <div 
-                  ref={promoCarouselRef}
-                  onScroll={(e) => {
-                    const target = e.currentTarget;
-                    const index = Math.round(target.scrollLeft / (target.offsetWidth * 0.9));
-                    setActiveBannerIndex(Math.min(Math.max(index, 0), 2));
-                  }}
-                  className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory scrollbar-none pb-2"
-                >
+              {/* PROMOTIONAL BANNERS SECTION - Desktop 3-Grid & Mobile Seamless Auto Slider */}
+              <div className="pt-4 space-y-3">
+                {/* Desktop: 3 Grid Columns (Hidden on Mobile) */}
+                <div className="hidden md:grid md:grid-cols-3 gap-4">
                   {/* Banner 1 */}
-                  <div className="w-[90vw] max-w-[360px] md:w-auto shrink-0 snap-center bg-gradient-to-br from-red-950/80 via-red-900/60 to-slate-950 border border-red-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-red-950/80 via-red-900/60 to-slate-950 border border-red-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
                     <div className="space-y-1.5 relative z-10">
                       <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-red-500/20 text-red-300 border border-red-500/30">স্পেশাল অফার</span>
                       <h4 className="font-black text-sm text-white">প্রিমিয়াম কোর্স আনলিমিটেড অ্যাক্সেস!</h4>
@@ -1215,7 +1217,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   </div>
 
                   {/* Banner 2 */}
-                  <div className="w-[90vw] max-w-[360px] md:w-auto shrink-0 snap-center bg-gradient-to-br from-blue-950/80 via-indigo-900/60 to-slate-950 border border-blue-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-blue-950/80 via-indigo-900/60 to-slate-950 border border-blue-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
                     <div className="space-y-1.5 relative z-10">
                       <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">লাইফটাইম</span>
                       <h4 className="font-black text-sm text-white">লাইফটাইম অ্যাক্সেস, একবার পেমেন্ট!</h4>
@@ -1227,7 +1229,7 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   </div>
 
                   {/* Banner 3 */}
-                  <div className="w-[90vw] max-w-[360px] md:w-auto shrink-0 snap-center bg-gradient-to-br from-emerald-950/80 via-teal-900/60 to-slate-950 border border-emerald-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-emerald-950/80 via-teal-900/60 to-slate-950 border border-emerald-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
                     <div className="space-y-1.5 relative z-10">
                       <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">নতুন স্কিল</span>
                       <h4 className="font-black text-sm text-white">নতুন স্কিল, নতুন আপনি!</h4>
@@ -1239,18 +1241,69 @@ export default function DashboardClient({ user, packages, videos, ebooks = [], c
                   </div>
                 </div>
 
+                {/* Mobile: Full-Width 1-Card Seamless Auto-Slide & Touch-Swipe Carousel */}
+                <div 
+                  className="block md:hidden w-full overflow-hidden rounded-2xl select-none"
+                  onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+                  onTouchEnd={(e) => {
+                    if (touchStartX === null) return;
+                    const diff = touchStartX - e.changedTouches[0].clientX;
+                    if (diff > 40) {
+                      setActiveBannerIndex((prev) => (prev + 1) % 3);
+                    } else if (diff < -40) {
+                      setActiveBannerIndex((prev) => (prev === 0 ? 2 : prev - 1));
+                    }
+                    setTouchStartX(null);
+                  }}
+                >
+                  <div 
+                    className="flex transition-transform duration-700 ease-in-out w-full"
+                    style={{ transform: `translateX(-${activeBannerIndex * 100}%)` }}
+                  >
+                    {/* Mobile Banner 1 */}
+                    <div className="w-full min-w-full shrink-0 bg-gradient-to-br from-red-950/80 via-red-900/60 to-slate-950 border border-red-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                      <div className="space-y-1.5 relative z-10">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-red-500/20 text-red-300 border border-red-500/30">স্পেশাল অফার</span>
+                        <h4 className="font-black text-sm text-white">প্রিমিয়াম কোর্স আনলিমিটেড অ্যাক্সেস!</h4>
+                        <p className="text-xs text-red-100/70 font-bold">হাজারো কোর্স, ই-বুক এবং টিউটোরিয়াল এর অ্যাক্সেস</p>
+                      </div>
+                      <button onClick={() => setActiveTab("combo")} className="w-fit px-4 py-2 bg-white text-red-700 font-extrabold rounded-lg text-xs hover:bg-red-50 transition-all cursor-pointer shadow-md">
+                        এক্সপ্লোর দিন
+                      </button>
+                    </div>
+
+                    {/* Mobile Banner 2 */}
+                    <div className="w-full min-w-full shrink-0 bg-gradient-to-br from-blue-950/80 via-indigo-900/60 to-slate-950 border border-blue-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                      <div className="space-y-1.5 relative z-10">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/30">লাইফটাইম</span>
+                        <h4 className="font-black text-sm text-white">লাইফটাইম অ্যাক্সেস, একবার পেমেন্ট!</h4>
+                        <p className="text-xs text-blue-100/70 font-bold">সবচেয়ে সাশ্রয়ী কনটেন্ট, নিয়মিত আপডেট</p>
+                      </div>
+                      <button onClick={() => setActiveTab("combo")} className="w-fit px-4 py-2 bg-white text-blue-700 font-extrabold rounded-lg text-xs hover:bg-blue-50 transition-all cursor-pointer shadow-md">
+                        বিস্তারিত দেখুন
+                      </button>
+                    </div>
+
+                    {/* Mobile Banner 3 */}
+                    <div className="w-full min-w-full shrink-0 bg-gradient-to-br from-emerald-950/80 via-teal-900/60 to-slate-950 border border-emerald-500/20 rounded-2xl p-5 text-left flex flex-col justify-between space-y-4 shadow-sm relative overflow-hidden">
+                      <div className="space-y-1.5 relative z-10">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">নতুন স্কিল</span>
+                        <h4 className="font-black text-sm text-white">নতুন স্কিল, নতুন আপনি!</h4>
+                        <p className="text-xs text-emerald-100/70 font-bold">প্রতিদিন নতুন কিছু শিখুন এবং ক্যারিয়ার গড়ুন</p>
+                      </div>
+                      <button onClick={() => { setSelectedCourse(null); setActiveTab("tutorials"); }} className="w-fit px-4 py-2 bg-white text-emerald-700 font-extrabold rounded-lg text-xs hover:bg-emerald-50 transition-all cursor-pointer shadow-md">
+                        শুরু করুন
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Mobile Pagination Slider Dots */}
                 <div className="flex md:hidden items-center justify-center gap-1.5 pt-1">
                   {[0, 1, 2].map((idx) => (
                     <button
                       key={idx}
-                      onClick={() => {
-                        if (promoCarouselRef.current) {
-                          const width = promoCarouselRef.current.offsetWidth * 0.92;
-                          promoCarouselRef.current.scrollTo({ left: idx * width, behavior: "smooth" });
-                          setActiveBannerIndex(idx);
-                        }
-                      }}
+                      onClick={() => setActiveBannerIndex(idx)}
                       className={"h-1.5 rounded-full transition-all cursor-pointer " + (activeBannerIndex === idx ? "w-6 bg-[#ff0000]" : "w-1.5 bg-slate-300 dark:bg-slate-700")}
                       aria-label={"Slide " + (idx + 1)}
                     />
