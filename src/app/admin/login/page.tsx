@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, Eye, EyeOff } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 export default function AdminLoginPage() {
-  const [phone, setPhone] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -21,7 +22,7 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ phone: identifier, password }),
       });
       const data = await res.json();
 
@@ -40,22 +41,22 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 relative">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-dark">Admin <span className="text-primary">Panel</span></h1>
-          <p className="text-slate-500 mt-2">Secure Login</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Logo />
+          <p className="text-slate-500 mt-4 font-medium">Auth Login</p>
         </div>
 
         {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number (Admin)</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Username / Email</label>
             <input 
               type="text" 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none" 
-              placeholder="017XXXXXXXX" 
+              placeholder="Username / Email" 
               required 
             />
           </div>
@@ -93,3 +94,4 @@ export default function AdminLoginPage() {
     </div>
   );
 }
+
