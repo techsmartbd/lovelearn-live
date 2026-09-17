@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/admin/login";
+  const isLoginPage = pathname === "/admin/login" || pathname === "/login" || pathname.endsWith("/login");
 
   if (isLoginPage) {
     return <Providers>{children}</Providers>;
