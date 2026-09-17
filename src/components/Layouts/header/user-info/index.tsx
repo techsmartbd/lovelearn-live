@@ -39,8 +39,9 @@ export function UserInfo() {
 
   function handleLogout() {
     setIsOpen(false);
-    window.location.href = "/api/auth/logout?redirect=/admin/login";
+    window.location.href = "/api/auth/logout?redirect=/login";
   }
+
 
   if (loading) {
     return (

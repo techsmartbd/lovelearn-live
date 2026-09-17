@@ -12,6 +12,10 @@ export function middleware(request: NextRequest) {
 
   // Handle Auth Subdomain requests
   if (isAuthSubdomain) {
+    if (pathname === '/admin/login') {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
     // If root or /login on auth subdomain
     if (pathname === '/' || pathname === '/login') {
       if (adminToken) {
@@ -21,7 +25,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Protect all /admin routes on auth subdomain
-    if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    if (pathname.startsWith('/admin')) {
       if (!adminToken) {
         return NextResponse.redirect(new URL('/login', request.url));
       }
@@ -29,6 +33,7 @@ export function middleware(request: NextRequest) {
 
     return NextResponse.next();
   }
+
 
   // On Main Domain (not auth subdomain)
   // Hide /admin routes completely to prevent scanning or unauthorized discovery
