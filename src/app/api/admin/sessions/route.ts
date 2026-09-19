@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { encryptPassword } from '@/lib/encryption';
-import bcrypt from 'bcryptjs';
 
 export async function GET(request: Request) {
   try {
@@ -18,10 +17,16 @@ export async function GET(request: Request) {
     if (type === 'active') {
       whereClause.isBlocked = false;
       whereClause.accountStatus = 'ACTIVE';
+      whereClause.orders = {
+        some: {
+          status: 'COMPLETED'
+        }
+      };
     } else if (type === 'pending') {
       whereClause.OR = [
         { isBlocked: true },
-        { accountStatus: { not: 'ACTIVE' } }
+        { accountStatus: { not: 'ACTIVE' } },
+        { orders: { none: { status: 'COMPLETED' } } }
       ];
     }
 
@@ -35,6 +40,15 @@ export async function GET(request: Request) {
         isBlocked: true,
         accountStatus: true,
         expiresAt: true,
+        orders: {
+          select: {
+            id: true,
+            status: true,
+            amount: true,
+            trxId: true,
+            createdAt: true
+          }
+        },
         sessions: {
           orderBy: { lastSeen: 'desc' }
         }
@@ -78,7 +92,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'User with this phone or email already exists' }, { status: 409 });
       }
 
-      const hashedPassword = await encryptPassword(password);
+      const hashedPassword = encryptPassword(password);
 
       const newUser = await prisma.user.create({
         data: {
@@ -92,6 +106,20 @@ export async function POST(request: Request) {
         }
       });
 
+      // Create a completed order for manual admin user creation
+      let pkg = await prisma.package.findFirst();
+      if (pkg) {
+        await prisma.order.create({
+          data: {
+            userId: newUser.id,
+            packageId: pkg.id,
+            trxId: `ADMIN_MANUAL_${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+            amount: pkg.price,
+            status: 'COMPLETED'
+          }
+        });
+      }
+
       return NextResponse.json({ success: true, user: { id: newUser.id, name: newUser.name, phone: newUser.phone } });
     }
 
@@ -100,7 +128,7 @@ export async function POST(request: Request) {
       if (!userId || !newPassword) {
         return NextResponse.json({ error: 'User ID and new password are required' }, { status: 400 });
       }
-      const hashedPassword = await encryptPassword(newPassword);
+      const hashedPassword = encryptPassword(newPassword);
       await prisma.user.update({
         where: { id: userId },
         data: { password: hashedPassword }
@@ -145,6 +173,11 @@ export async function POST(request: Request) {
     }
 
     if (action === 'DELETE') {
+      // Cascade delete orders, sessions, logs
+      await prisma.session.deleteMany({ where: { userId } });
+      await prisma.order.deleteMany({ where: { userId } });
+      await prisma.activityLog.deleteMany({ where: { userId } });
+      await prisma.notification.deleteMany({ where: { userId } });
       await prisma.user.delete({
         where: { id: userId }
       });
